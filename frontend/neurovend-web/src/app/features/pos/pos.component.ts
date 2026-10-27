@@ -93,6 +93,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargarConfig();
     if (!this.posState.tieneContenido) {
       this.crearPrimeraCuenta();
+    } else {
+      this.cuentaActual()?.detalles.forEach(d =>
+        this.localCantidades.set(d.productoId, d.cantidad)
+      );
     }
     this.buscarProductos('');
 
