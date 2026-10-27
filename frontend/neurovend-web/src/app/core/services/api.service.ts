@@ -9,9 +9,7 @@ import {
 } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private base = window.location.hostname === 'localhost'
-    ? ''
-    : 'https://silent-summit-299.fly.dev';
+  private base = 'https://silent-summit-299.fly.dev';
 
   constructor(private http: HttpClient) {}
 
