@@ -6,6 +6,7 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
+import { apiInterceptor } from './core/interceptors/api.interceptor';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 @NgModule({
@@ -14,7 +15,7 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([jwtInterceptor])),
+    provideHttpClient(withInterceptors([apiInterceptor, jwtInterceptor])),
     providePrimeNG({
       theme: { preset: Aura, options: { darkModeSelector: false } },
     }),

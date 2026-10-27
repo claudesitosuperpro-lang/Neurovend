@@ -9,12 +9,10 @@ import {
 } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private base = 'https://silent-summit-299.fly.dev';
-
   constructor(private http: HttpClient) {}
 
   private url(path: string): string {
-    return `${this.base}${path}`;
+    return path;
   }
 
   // ─── Productos ────────────────────────────────────────────────────
