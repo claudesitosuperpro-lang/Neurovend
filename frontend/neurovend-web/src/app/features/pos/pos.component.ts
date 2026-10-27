@@ -279,8 +279,9 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       await this.api.agregarProducto(cuenta.ventaId, { productoId: p.id, cantidad });
       await this.recargarDetalles();
-    } catch {
-      this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo agregar el producto', life: 3000 });
+    } catch (err: any) {
+      const detail = err?.error?.error ?? 'No se pudo agregar el producto';
+      this.msg.add({ severity: 'error', summary: 'Stock insuficiente', detail, life: 4000 });
     } finally {
       this.cargandoAgregar.set(false);
     }
@@ -293,8 +294,9 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       await this.api.updateCantidad(cuenta.ventaId, d.productoId, nuevaCantidad);
       await this.recargarDetalles();
-    } catch {
-      this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar cantidad', life: 3000 });
+    } catch (err: any) {
+      const detail = err?.error?.error ?? 'No se pudo actualizar cantidad';
+      this.msg.add({ severity: 'error', summary: 'Stock insuficiente', detail, life: 4000 });
     }
   }
 

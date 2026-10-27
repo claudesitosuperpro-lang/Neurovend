@@ -228,14 +228,22 @@ ventas.MapGet("/{ventaId:long}/detalles", async (long ventaId, IVentaService ven
 
 ventas.MapPost("/{ventaId:long}/productos", async (long ventaId, AgregarProductoRequest req, IVentaService ventaService) =>
 {
-    await ventaService.AgregarProductoAsync(ventaId, req.ProductoId, req.Cantidad);
-    return Results.Ok();
+    try
+    {
+        await ventaService.AgregarProductoAsync(ventaId, req.ProductoId, req.Cantidad);
+        return Results.Ok();
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
 ventas.MapPut("/{ventaId:long}/productos/{productoId:long}", async (long ventaId, long productoId, UpdateCantidadRequest req, IVentaService ventaService) =>
 {
-    await ventaService.UpdateCantidadAsync(ventaId, productoId, req.NuevaCantidad);
-    return Results.Ok();
+    try
+    {
+        await ventaService.UpdateCantidadAsync(ventaId, productoId, req.NuevaCantidad);
+        return Results.Ok();
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
 ventas.MapDelete("/{ventaId:long}/productos/{productoId:long}", async (long ventaId, long productoId, IVentaService ventaService) =>
@@ -246,8 +254,12 @@ ventas.MapDelete("/{ventaId:long}/productos/{productoId:long}", async (long vent
 
 ventas.MapPost("/{ventaId:long}/finalizar", async (long ventaId, FinalizarVentaRequest req, IVentaService ventaService) =>
 {
-    await ventaService.FinalizarVentaAsync(ventaId, req.MetodoPago, req.MontoRecibido, req.Cambio);
-    return Results.Ok();
+    try
+    {
+        await ventaService.FinalizarVentaAsync(ventaId, req.MetodoPago, req.MontoRecibido, req.Cambio);
+        return Results.Ok();
+    }
+    catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
 });
 
 ventas.MapDelete("/{ventaId:long}", async (long ventaId, IVentaService ventaService) =>

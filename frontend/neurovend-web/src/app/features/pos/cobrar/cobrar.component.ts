@@ -60,8 +60,9 @@ export class CobrarComponent {
     try {
       await this.api.finalizarVenta(this.ventaId, req);
       this.paso = 'imprimir';
-    } catch {
-      this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo finalizar la venta', life: 3000 });
+    } catch (err: any) {
+      const detail = err?.error?.error ?? 'No se pudo finalizar la venta';
+      this.msg.add({ severity: 'error', summary: 'Error', detail, life: 5000 });
     } finally {
       this.cargando.set(false);
     }
