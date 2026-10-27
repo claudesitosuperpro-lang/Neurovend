@@ -16,6 +16,7 @@ import { MessageService, MenuItem } from 'primeng/api';
 import { AuthService } from '../../core/services/auth.service';
 import { HardwareService } from '../../core/services/hardware.service';
 import { ApiService } from '../../core/services/api.service';
+import { PosStateService } from '../../core/services/pos-state.service';
 import { Producto, DetalleVenta, Configuracion, CuentaPos } from '../../core/models';
 import { CobrarComponent } from './cobrar/cobrar.component';
 import { SelectOnFocusDirective } from '../../shared/directives/select-on-focus.directive';
@@ -41,6 +42,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   private hardware = inject(HardwareService);
   private api = inject(ApiService);
   private msg = inject(MessageService);
+  private posState = inject(PosStateService);
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
 
@@ -48,12 +50,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   isDueno = this.auth.isDueno;
   hardwareDisponible = this.hardware.disponible;
 
-  cuentas = signal<CuentaPos[]>([]);
-  cuentaIndex = signal(0);
-  cuentaActual = computed(() => this.cuentas()[this.cuentaIndex()] ?? null);
-  cuentaTotal = computed(() =>
-    this.cuentaActual()?.detalles.reduce((s, d) => s + d.subtotal, 0) ?? 0
-  );
+  // Aliases al estado global — sobreviven la navegación
+  cuentas = this.posState.cuentas;
+  cuentaIndex = this.posState.cuentaIndex;
+  cuentaActual = this.posState.cuentaActual;
+  cuentaTotal = this.posState.cuentaTotal;
 
   productos = signal<Producto[]>([]);
   cargandoProductos = signal(false);
@@ -90,7 +91,9 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.hardware.verificarDisponibilidad();
     this.cargarConfig();
-    this.crearPrimeraCuenta();
+    if (!this.posState.tieneContenido) {
+      this.crearPrimeraCuenta();
+    }
     this.buscarProductos('');
 
     this.searchSubject.pipe(
@@ -363,6 +366,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   logout(): void {
+    this.posState.clear();
     this.auth.logout();
   }
 }
