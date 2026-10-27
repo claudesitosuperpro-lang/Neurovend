@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx ng build --configuration production",
+  "buildCommand": "npx ng cache clean --force && npx ng build --configuration production",
   "outputDirectory": "dist/neurovend-web/browser",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
