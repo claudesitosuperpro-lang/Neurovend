@@ -7,11 +7,11 @@ import {
   VentaResumenDto, RegisterRequest, Configuracion,
   UsuarioDto, UpdateUsuarioRequest,
 } from '../models';
-import { environment } from '../../../environments/environment';
-
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private base = environment.apiUrl;
+  private base = window.location.hostname === 'localhost'
+    ? ''
+    : 'https://silent-summit-299.fly.dev';
 
   constructor(private http: HttpClient) {}
 
