@@ -216,15 +216,29 @@
   transition: all 0.15s;
   white-space: nowrap;
 
-  &:hover {
+  &:hover:not(.active) {
     color: var(--p-text-color, #1e293b);
     background: var(--p-surface-100, #f1f5f9);
   }
 
   &.active {
-    color: var(--p-primary-color, #3b82f6);
+    color: #fff;
+    background: var(--p-primary-color, #3b82f6);
     border-bottom-color: var(--p-primary-color, #3b82f6);
-    background: #fff;
+    font-weight: 700;
+
+    .tab-badge {
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .tab-close {
+      color: rgba(255, 255, 255, 0.75);
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+    }
   }
 }
 
