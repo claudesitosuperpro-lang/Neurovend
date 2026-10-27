@@ -38,7 +38,7 @@
           </span>
         </span>
         <span class="col-estado">
-          <p-toggleswitch [ngModel]="u.activo" (onChange)="toggleActivo(u)" />
+          <p-toggleswitch [ngModel]="u.activo" (onChange)="toggleActivo(u)" [disabled]="u.id === currentUserId" />
         </span>
         <span class="col-acciones">
           <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (onClick)="abrirEditar(u)" />
@@ -73,15 +73,17 @@
       <input pInputText type="text" [(ngModel)]="form.username" placeholder="Nombre de usuario" class="w-full" autocomplete="off" />
     </div>
 
-    <div class="form-row">
-      <label>Rol</label>
-      <p-selectbutton
-        [options]="rolOptions"
-        [(ngModel)]="form.rol"
-        optionLabel="label"
-        optionValue="value"
-      />
-    </div>
+    @if (editandoId !== currentUserId) {
+      <div class="form-row">
+        <label>Rol</label>
+        <p-selectbutton
+          [options]="rolOptions"
+          [(ngModel)]="form.rol"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+    }
 
     @if (editandoId === null) {
       <div class="form-row">

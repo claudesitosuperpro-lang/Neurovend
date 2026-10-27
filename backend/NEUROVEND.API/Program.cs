@@ -133,6 +133,7 @@ usuarios.MapPut("/{id:long}", async (long id, UpdateUsuarioRequest req, IUsuario
     if (string.IsNullOrWhiteSpace(req.Nombre) || string.IsNullOrWhiteSpace(req.Username))
         return Results.BadRequest(new { error = "Nombre y username son obligatorios" });
 
+    var currentId = long.Parse(user.FindFirst("id")!.Value);
     if (await usuarioRepo.ExistsByUsernameExcludingIdAsync(req.Username, id))
         return Results.Conflict(new { error = "El username ya está en uso" });
 
@@ -146,7 +147,8 @@ usuarios.MapPut("/{id:long}", async (long id, UpdateUsuarioRequest req, IUsuario
 
     actual.Nombre = req.Nombre;
     actual.Username = req.Username;
-    actual.Rol = req.Rol;
+    // No permitir que el dueño se cambie su propio rol
+    actual.Rol = (id == currentId) ? actual.Rol : req.Rol;
     actual.PasswordHash = passwordHash;
     await usuarioRepo.UpdateAsync(actual);
     return Results.NoContent();
@@ -155,6 +157,9 @@ usuarios.MapPut("/{id:long}", async (long id, UpdateUsuarioRequest req, IUsuario
 usuarios.MapPatch("/{id:long}/activo", async (long id, ToggleActivoRequest req, IUsuarioRepository usuarioRepo, ClaimsPrincipal user) =>
 {
     if (!user.IsInRole("dueño")) return Results.Forbid();
+    var currentId = long.Parse(user.FindFirst("id")!.Value);
+    if (id == currentId)
+        return Results.BadRequest(new { error = "No puedes desactivarte a ti mismo" });
     await usuarioRepo.ToggleActivoAsync(id, req.Activo);
     return Results.NoContent();
 });

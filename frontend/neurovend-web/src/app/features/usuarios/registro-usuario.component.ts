@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { UsuarioDto, RegisterRequest, UpdateUsuarioRequest } from '../../core/models';
 
 @Component({
@@ -23,7 +24,10 @@ import { UsuarioDto, RegisterRequest, UpdateUsuarioRequest } from '../../core/mo
 })
 export class RegistroUsuarioComponent implements OnInit {
   private api = inject(ApiService);
+  private auth = inject(AuthService);
   private msg = inject(MessageService);
+
+  currentUserId = this.auth.usuario()?.id;
 
   usuarios = signal<UsuarioDto[]>([]);
   cargando = signal(false);
