@@ -1,0 +1,6 @@
+@NEUROVEND.API_HostAddress = http://localhost:5115
+
+GET {{NEUROVEND.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

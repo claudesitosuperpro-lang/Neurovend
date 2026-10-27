@@ -1,0 +1,254 @@
+<p-toast />
+
+<!-- Top navbar for dueño -->
+@if (isDueno()) {
+  <div class="pos-navbar-bar">
+    <p-menubar [model]="navItems()">
+      <ng-template #start>
+        <span class="navbar-brand">NEUROVEND</span>
+      </ng-template>
+      <ng-template #end>
+        <span class="navbar-user">
+          <span class="pi pi-user"></span> {{ usuario()?.nombre }}
+          @if (!hardwareDisponible()) {
+            <span class="pi pi-circle-fill hw-offline" title="HardwareBridge sin conexión"></span>
+          }
+        </span>
+      </ng-template>
+    </p-menubar>
+  </div>
+}
+
+@if (!isDueno()) {
+  <div class="simple-navbar">
+    <span class="navbar-brand">NEUROVEND POS</span>
+    <span class="navbar-user">
+      <span class="pi pi-user"></span> {{ usuario()?.nombre }}
+      @if (!hardwareDisponible()) {
+        <span class="pi pi-circle-fill hw-offline" title="HardwareBridge sin conexión"></span>
+      }
+    </span>
+    <p-button label="Salir" icon="pi pi-sign-out" [text]="true" severity="secondary" size="small" (onClick)="logout()" />
+  </div>
+}
+
+<!-- Main POS layout -->
+<div class="pos-layout">
+
+  <!-- LEFT: Product catalog -->
+  <div class="productos-panel">
+    <div class="search-bar">
+      <input
+        #searchInput
+        pInputText
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearch($event)"
+        (keydown.enter)="onSearchEnter()"
+        placeholder="Buscar producto o código..."
+        class="w-full"
+      />
+    </div>
+
+    @if (cargandoProductos()) {
+      <div class="loading-products">
+        <span class="pi pi-spin pi-spinner"></span>
+        <span>Cargando...</span>
+      </div>
+    }
+
+    <div class="productos-grid">
+      @for (p of productos(); track p.id) {
+        <div class="producto-card" (click)="seleccionarProducto(p)" [class.peso]="p.tipoVenta === 'peso'">
+          @if (p.imagenUrl) {
+            <img [src]="p.imagenUrl" [alt]="p.nombre" class="producto-img" loading="lazy" (error)="onImageError($event)" />
+          }
+          <div class="producto-nombre">{{ p.nombre }}</div>
+          <div class="producto-precio">
+            {{ precioProducto(p) | currency:'MXN':'symbol':'1.2-2' }}
+            <span class="producto-tipo-badge">{{ p.tipoVenta === 'peso' ? 'kg' : 'u' }}</span>
+          </div>
+        </div>
+      }
+      @empty {
+        <div class="no-productos">
+          <span class="pi pi-inbox"></span>
+          <p>Sin productos</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- RIGHT: Current cuenta -->
+  <div class="cuenta-panel">
+
+    <!-- Tabs for multiple cuentas -->
+    <div class="cuentas-tabs-bar">
+      <div class="cuentas-tabs">
+        @for (c of cuentas(); track c.ventaId; let i = $index) {
+          <div
+            class="cuenta-tab"
+            [class.active]="cuentaIndex() === i"
+            (click)="cuentaIndex.set(i)"
+          >
+            <span>{{ c.etiqueta }}</span>
+            @if (c.detalles.length > 0) {
+              <span class="tab-badge">{{ c.detalles.length }}</span>
+            }
+            @if (cuentas().length > 1) {
+              <button class="tab-close" (click)="cerrarCuenta(i, $event)" title="Cerrar cuenta">
+                <span class="pi pi-times"></span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <button class="tab-new" (click)="nuevaCuenta()" title="Nueva cuenta">
+        <span class="pi pi-plus"></span>
+      </button>
+    </div>
+
+    <!-- Detalles list -->
+    <div class="detalles-list">
+      @if (!cuentaActual()?.detalles?.length) {
+        <div class="cuenta-vacia">
+          <span class="pi pi-shopping-cart"></span>
+          <p>Toca un producto para agregarlo</p>
+        </div>
+      }
+
+      @for (d of cuentaActual()?.detalles ?? []; track d.productoId) {
+        <div class="detalle-row">
+          <div class="detalle-info">
+            <span class="detalle-nombre">{{ d.productoNombre }}</span>
+            <span class="detalle-precio-unit">
+              ${{ d.precioUnitario.toFixed(2) }} / {{ d.tipoVenta === 'peso' ? 'kg' : 'u' }}
+            </span>
+          </div>
+          <div class="detalle-controles">
+            <p-inputnumber
+              [ngModel]="getLocalCantidad(d.productoId)"
+              (ngModelChange)="setLocalCantidad(d.productoId, $event)"
+              (onBlur)="commitCantidad(d)"
+              [min]="0.001"
+              [step]="d.tipoVenta === 'peso' ? 0.1 : 1"
+              [minFractionDigits]="d.tipoVenta === 'peso' ? 3 : 0"
+              [maxFractionDigits]="d.tipoVenta === 'peso' ? 3 : 0"
+              styleClass="detalle-qty-wrapper"
+              inputStyleClass="detalle-qty-input"
+            />
+            <span class="detalle-subtotal">{{ d.subtotal | currency:'MXN':'symbol':'1.2-2' }}</span>
+            <button class="detalle-delete" (click)="eliminarDetalle(d)" title="Eliminar">
+              <span class="pi pi-trash"></span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer: total + actions -->
+    <div class="cuenta-footer">
+      <div class="total-row">
+        <span class="total-label">TOTAL</span>
+        <span class="total-amount">{{ cuentaTotal() | currency:'MXN':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="footer-actions">
+        <p-button
+          label="Limpiar"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [text]="true"
+          (onClick)="limpiarCuenta()"
+          [disabled]="!cuentaActual()?.detalles?.length"
+        />
+        <p-button
+          label="Cobrar"
+          icon="pi pi-dollar"
+          severity="success"
+          size="large"
+          (onClick)="mostrarCobrar = true"
+          [disabled]="!cuentaActual()?.detalles?.length"
+          styleClass="cobrar-btn"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: quantity for unit products -->
+<p-dialog
+  header="Cantidad"
+  [(visible)]="mostrarDialogCantidad"
+  [modal]="true"
+  [style]="{ width: '300px' }"
+  (onHide)="onDialogHide()"
+>
+  <div class="dialog-body-center" (keydown.enter)="confirmarCantidad()">
+    <p class="dialog-producto-nombre">{{ productoSeleccionado?.nombre }}</p>
+    <p-inputnumber
+      [(ngModel)]="cantidadInput"
+      [min]="1"
+      [step]="1"
+      [showButtons]="true"
+      buttonLayout="horizontal"
+      decrementButtonIcon="pi pi-minus"
+      incrementButtonIcon="pi pi-plus"
+      [autofocus]="true"
+      styleClass="w-full"
+    />
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="mostrarDialogCantidad = false" />
+    <p-button label="Agregar" icon="pi pi-plus" (onClick)="confirmarCantidad()" [disabled]="cantidadInput <= 0" />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog: weight for peso products -->
+<p-dialog
+  header="Peso"
+  [(visible)]="mostrarDialogPeso"
+  [modal]="true"
+  [style]="{ width: '320px' }"
+  (onHide)="onDialogHide()"
+>
+  <div class="dialog-body-center" (keydown.enter)="confirmarPeso()">
+    <p class="dialog-producto-nombre">{{ productoSeleccionado?.nombre }}</p>
+    <p-inputnumber
+      [(ngModel)]="pesoManual"
+      [min]="0"
+      [minFractionDigits]="3"
+      [maxFractionDigits]="3"
+      [step]="0.1"
+      suffix=" kg"
+      [autofocus]="true"
+      styleClass="w-full"
+    />
+    @if (hardwareDisponible() && config) {
+      <p-button
+        label="Leer báscula"
+        icon="pi pi-refresh"
+        [text]="true"
+        [loading]="leyendoBascula()"
+        (onClick)="leerBascula()"
+        styleClass="w-full mt-2"
+      />
+    }
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="mostrarDialogPeso = false" />
+    <p-button label="Agregar" icon="pi pi-plus" (onClick)="confirmarPeso()" [disabled]="pesoManual <= 0" />
+  </ng-template>
+</p-dialog>
+
+<!-- Cobrar dialog -->
+@if (cuentaActual()) {
+  <app-cobrar
+    [ventaId]="cuentaActual()!.ventaId"
+    [total]="cuentaTotal()"
+    [detalles]="cuentaActual()!.detalles"
+    [config]="config"
+    [visible]="mostrarCobrar"
+    (visibleChange)="mostrarCobrar = $event"
+    (ventaFinalizada)="onVentaFinalizada()"
+  />
+}

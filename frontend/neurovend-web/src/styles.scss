@@ -1,0 +1,42 @@
+@import 'primeicons/primeicons.css';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Suppress PrimeUI license banner (cosmetic only, pointer-events:none) */
+#p-license-host {
+  display: none !important;
+}
+
+/* POS navbar — wrapper div around p-menubar for the dueño role */
+.pos-navbar-bar .p-menubar {
+  background: #1e3a5f !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-radius: 0 !important;
+}
+
+.pos-navbar-bar .p-menubar-item-label { color: #e2e8f0 !important; }
+.pos-navbar-bar .p-menubar-item:hover .p-menubar-item-label { color: #fff !important; }
+.pos-navbar-bar .p-menubar-submenu { background: #1e3a5f !important; }
+.pos-navbar-bar .p-menubar-submenu .p-menubar-item-label { color: #e2e8f0 !important; }
+
+/* Dialogs: cap total height and let content scroll */
+.p-dialog {
+  max-height: 95dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+
+  .p-dialog-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+}

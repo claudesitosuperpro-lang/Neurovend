@@ -1,0 +1,163 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="gestion-layout">
+  <div class="gestion-header">
+    <div class="header-left">
+      <a routerLink="/pos" class="back-link">
+        <span class="pi pi-arrow-left"></span>
+      </a>
+      <h1>Gestión de Productos</h1>
+    </div>
+    <div class="header-actions">
+      <input
+        #searchInput
+        pInputText
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="cargarProductos()"
+        placeholder="Buscar..."
+        class="search-input"
+      />
+      <p-button label="Nuevo producto" icon="pi pi-plus" (onClick)="abrirCrear()" />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="loading-state">
+      <span class="pi pi-spin pi-spinner"></span> Cargando...
+    </div>
+  }
+
+  <div class="productos-table">
+    <div class="table-header-row">
+      <span class="col-codigo">Código</span>
+      <span class="col-nombre">Nombre</span>
+      <span class="col-tipo">Tipo</span>
+      <span class="col-precio">Precio</span>
+      <span class="col-stock">Stock</span>
+      <span class="col-estado">Estado</span>
+      <span class="col-acciones">Acciones</span>
+    </div>
+
+    @for (p of productos(); track p.id) {
+      <div class="table-row" [class.inactivo]="!p.activo">
+        <span class="col-codigo mono">{{ p.codigo }}</span>
+        <span class="col-nombre">{{ p.nombre }}</span>
+        <span class="col-tipo">
+          <span class="tipo-badge" [class.peso]="p.tipoVenta === 'peso'">
+            {{ p.tipoVenta === 'peso' ? 'Peso' : 'Unidad' }}
+          </span>
+        </span>
+        <span class="col-precio">{{ precioProducto(p) | currency:'MXN':'symbol':'1.2-2' }} / {{ p.tipoVenta === 'peso' ? 'kg' : 'u' }}</span>
+        <span class="col-stock">
+          @if (p.stockHabilitado) {
+            {{ p.stock }}
+          } @else {
+            <span class="text-muted">—</span>
+          }
+        </span>
+        <span class="col-estado">
+          <p-toggleswitch [ngModel]="p.activo" (onChange)="toggleActivo(p)" />
+        </span>
+        <span class="col-acciones">
+          <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (onClick)="abrirEditar(p)" />
+          <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="confirmarEliminar(p)" />
+        </span>
+      </div>
+    }
+
+    @empty {
+      <div class="empty-state">
+        <span class="pi pi-inbox"></span>
+        <p>No hay productos</p>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Create / Edit dialog -->
+<p-dialog
+  [header]="editandoId ? 'Editar producto' : 'Nuevo producto'"
+  [(visible)]="mostrarDialog"
+  [modal]="true"
+  [style]="{ width: '440px' }"
+>
+  <div class="form-body" (keydown.enter)="guardar()">
+    <div class="form-row">
+      <label>Código *</label>
+      <input pInputText type="text" [(ngModel)]="form.codigo" placeholder="Ej: FRU001" class="w-full" />
+    </div>
+
+    <div class="form-row">
+      <label>Nombre *</label>
+      <input pInputText type="text" [(ngModel)]="form.nombre" placeholder="Nombre del producto" class="w-full" />
+    </div>
+
+    <div class="form-row">
+      <label>Tipo de venta</label>
+      <p-selectbutton
+        [options]="tipoVentaOptions"
+        [(ngModel)]="form.tipoVenta"
+        optionLabel="label"
+        optionValue="value"
+        (onChange)="onTipoVentaChange()"
+      />
+    </div>
+
+    @if (form.tipoVenta === 'peso') {
+      <div class="form-row">
+        <label>Precio por kg *</label>
+        <p-inputnumber
+          [(ngModel)]="form.precioPorKg"
+          mode="currency"
+          currency="MXN"
+          locale="es-MX"
+          [min]="0"
+          styleClass="w-full"
+        />
+      </div>
+    }
+
+    @if (form.tipoVenta === 'unidad') {
+      <div class="form-row">
+        <label>Precio por unidad *</label>
+        <p-inputnumber
+          [(ngModel)]="form.precioPorUnidad"
+          mode="currency"
+          currency="MXN"
+          locale="es-MX"
+          [min]="0"
+          styleClass="w-full"
+        />
+      </div>
+    }
+
+    <div class="form-row">
+      <label>Habilitar control de stock</label>
+      <p-toggleswitch [(ngModel)]="form.stockHabilitado" />
+    </div>
+
+    @if (form.stockHabilitado) {
+      <div class="form-row">
+        <label>Stock</label>
+        <p-inputnumber [(ngModel)]="form.stock" [min]="0" styleClass="w-full" />
+      </div>
+    }
+
+    <div class="form-row">
+      <label>URL de imagen (opcional)</label>
+      <input pInputText type="text" [(ngModel)]="form.imagenUrl" placeholder="https://..." class="w-full" />
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="mostrarDialog = false" />
+    <p-button
+      [label]="editandoId ? 'Actualizar' : 'Crear'"
+      icon="pi pi-check"
+      [loading]="guardando()"
+      (onClick)="guardar()"
+    />
+  </ng-template>
+</p-dialog>

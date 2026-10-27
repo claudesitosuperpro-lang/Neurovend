@@ -1,0 +1,45 @@
+<p-toast />
+
+<div class="login-bg">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>NEUROVEND</h1>
+      <p>Sistema de Punto de Venta</p>
+    </div>
+
+    <div class="login-form">
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input
+          pInputText
+          id="username"
+          [(ngModel)]="username"
+          placeholder="usuario"
+          autocomplete="username"
+          (keyup.enter)="login()"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <p-password
+          inputId="password"
+          [(ngModel)]="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          (keyup.enter)="login()"
+        />
+      </div>
+
+      <p-button
+        label="Ingresar"
+        icon="pi pi-sign-in"
+        [loading]="cargando()"
+        (onClick)="login()"
+        styleClass="w-full"
+      />
+    </div>
+  </div>
+</div>

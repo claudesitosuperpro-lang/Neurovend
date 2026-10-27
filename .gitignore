@@ -1,0 +1,28 @@
+# ─── .NET ────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+appsettings.Development.json
+
+# ─── Angular / Node ──────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+*.js.map
+
+# ─── Secrets / env ───────────────────────────────────────────────
+appsettings*.json
+!appsettings.example.json
+*.env
+.env*
+
+# ─── OS ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Claude ──────────────────────────────────────────────────────
+.claude/

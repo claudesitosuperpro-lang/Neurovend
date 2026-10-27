@@ -1,0 +1,122 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--p-surface-50, #f8fafc);
+}
+
+.config-layout {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--p-text-color, #1e293b);
+    margin: 0;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--p-text-muted-color, #94a3b8);
+  text-decoration: none;
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--p-surface-200, #e2e8f0);
+    color: var(--p-text-color, #1e293b);
+  }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+.config-section {
+  background: #fff;
+  border: 1px solid var(--p-surface-200, #e2e8f0);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--p-text-color, #1e293b);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .pi {
+    color: var(--p-primary-color, #3b82f6);
+  }
+}
+
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--p-text-color, #1e293b);
+  }
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+.hw-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--p-yellow-50, #fefce8);
+  border: 1px solid var(--p-yellow-300, #fde047);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--p-yellow-700, #a16207);
+}
+
+.save-row {
+  display: flex;
+  justify-content: flex-end;
+}

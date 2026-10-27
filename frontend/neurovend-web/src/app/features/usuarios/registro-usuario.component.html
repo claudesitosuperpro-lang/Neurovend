@@ -1,0 +1,56 @@
+<p-toast />
+
+<div class="usuarios-layout">
+  <div class="page-header">
+    <div class="header-left">
+      <a routerLink="/pos" class="back-link">
+        <span class="pi pi-arrow-left"></span>
+      </a>
+      <h1>Registrar Usuario</h1>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-body">
+      <div class="form-row">
+        <label>Nombre completo *</label>
+        <input pInputText type="text" [(ngModel)]="form.nombre" placeholder="Ej: Juan Pérez" class="w-full" />
+      </div>
+
+      <div class="form-row">
+        <label>Nombre de usuario *</label>
+        <input pInputText type="text" [(ngModel)]="form.username" placeholder="Ej: juan.perez" class="w-full" autocomplete="off" />
+      </div>
+
+      <div class="form-row">
+        <label>Contraseña *</label>
+        <input pInputText type="password" [(ngModel)]="form.password" placeholder="Mínimo 6 caracteres" class="w-full" autocomplete="new-password" />
+      </div>
+
+      <div class="form-row">
+        <label>Confirmar contraseña *</label>
+        <input pInputText type="password" [(ngModel)]="confirmPassword" placeholder="Repite la contraseña" class="w-full" autocomplete="new-password" />
+      </div>
+
+      <div class="form-row">
+        <label>Rol</label>
+        <p-selectbutton
+          [options]="rolOptions"
+          [(ngModel)]="form.rol"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+
+      <div class="form-actions">
+        <p-button
+          label="Registrar usuario"
+          icon="pi pi-user-plus"
+          [loading]="guardando()"
+          (onClick)="registrar()"
+          styleClass="w-full"
+        />
+      </div>
+    </div>
+  </div>
+</div>

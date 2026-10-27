@@ -1,0 +1,85 @@
+<p-toast />
+
+<p-dialog
+  [header]="paso === 'cobrar' ? 'Cobrar venta' : '¿Imprimir ticket?'"
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  (onHide)="onHide()"
+  [modal]="true"
+  [closable]="!cargando()"
+  [style]="{ width: '380px' }"
+>
+  @if (paso === 'cobrar') {
+    <div class="cobrar-body" (keydown.enter)="finalizar()">
+      <div class="total-display">
+        <span class="total-label">Total</span>
+        <span class="total-value">{{ total | currency:'MXN':'symbol':'1.2-2' }}</span>
+      </div>
+
+      <div class="metodo-pago">
+        <label class="metodo-label">Método de pago</label>
+        <div class="metodo-options">
+          <div class="metodo-option" [class.selected]="metodoPago === 'efectivo'" (click)="metodoPago = 'efectivo'; montoRecibido.set(0)">
+            <span class="pi pi-money-bill"></span>
+            <span>Efectivo</span>
+          </div>
+          <div class="metodo-option" [class.selected]="metodoPago === 'tarjeta'" (click)="metodoPago = 'tarjeta'">
+            <span class="pi pi-credit-card"></span>
+            <span>Tarjeta</span>
+          </div>
+        </div>
+      </div>
+
+      @if (metodoPago === 'efectivo') {
+        <div class="efectivo-section">
+          <label>Monto recibido</label>
+          <p-inputnumber
+            [ngModel]="montoRecibido()"
+            (ngModelChange)="montoRecibido.set($event ?? 0)"
+            mode="currency"
+            currency="MXN"
+            locale="es-MX"
+            [min]="0"
+            [autofocus]="true"
+            styleClass="w-full"
+          />
+          @if (montoRecibido() >= total) {
+            <div class="cambio-display">
+              <span>Cambio</span>
+              <span class="cambio-value">{{ cambio() | currency:'MXN':'symbol':'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <ng-template #footer>
+      <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="onHide()" [disabled]="cargando()" />
+      <p-button
+        label="Cobrar"
+        icon="pi pi-check"
+        [loading]="cargando()"
+        (onClick)="finalizar()"
+        [disabled]="metodoPago === 'efectivo' && montoRecibido() < total"
+      />
+    </ng-template>
+  }
+
+  @if (paso === 'imprimir') {
+    <div class="imprimir-body" (keydown.enter)="imprimir()">
+      <span class="pi pi-check-circle success-icon"></span>
+      <p class="success-msg">¡Venta registrada con éxito!</p>
+      <p class="imprimir-pregunta">¿Desea imprimir el ticket?</p>
+    </div>
+
+    <ng-template #footer>
+      <p-button label="No imprimir" [text]="true" severity="secondary" (onClick)="cerrar()" />
+      <p-button
+        label="Imprimir"
+        icon="pi pi-print"
+        (onClick)="imprimir()"
+        [disabled]="!this.hardware.disponible()"
+      />
+    </ng-template>
+  }
+</p-dialog>

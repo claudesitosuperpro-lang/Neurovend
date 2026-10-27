@@ -1,0 +1,166 @@
+<p-toast />
+
+<!-- Ticket preview dialog -->
+<p-dialog
+  header="Vista previa del ticket"
+  [(visible)]="mostrarPreview"
+  [modal]="true"
+  [style]="{ width: '360px' }"
+  (onHide)="ventaPreview = null"
+>
+  @if (ventaPreview) {
+    <div class="ticket-preview">
+      <div class="ticket-header">
+        @for (line of (config?.encabezadoTicket ?? 'NEUROVEND').split('\n'); track $index) {
+          <div>{{ line }}</div>
+        }
+      </div>
+      <div class="ticket-divider">--------------------------------</div>
+      <div class="ticket-meta">
+        <span>Fecha: {{ ventaPreview.fecha + 'Z' | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span>Folio: #{{ ventaPreview.id }}</span>
+        <span>Cajero: {{ ventaPreview.usuarioNombre }}</span>
+      </div>
+      <div class="ticket-divider">--------------------------------</div>
+      <div class="ticket-items">
+        @for (d of ventaPreview.detalles; track d.productoId) {
+          <div class="ticket-item">
+            <span class="ticket-item-nombre">{{ d.productoNombre }}</span>
+            <div class="ticket-item-detalle">
+              <span>{{ d.tipoVenta === 'peso' ? d.cantidad.toFixed(3) + ' kg' : d.cantidad + ' u' }} × ${{ d.precioUnitario.toFixed(2) }}</span>
+              <span>${{ d.subtotal.toFixed(2) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="ticket-divider">--------------------------------</div>
+      <div class="ticket-total">
+        <span>TOTAL</span>
+        <span>{{ ventaPreview.total | currency:'MXN':'symbol':'1.2-2' }}</span>
+      </div>
+      @if (ventaPreview.metodoPago) {
+        <div class="ticket-pago">Pago: {{ ventaPreview.metodoPago }}</div>
+      }
+    </div>
+  }
+  <ng-template #footer>
+    <p-button label="Cerrar" [text]="true" severity="secondary" (onClick)="mostrarPreview = false" />
+    <p-button
+      label="Imprimir"
+      icon="pi pi-print"
+      [disabled]="!hardware.disponible()"
+      (onClick)="reimprimirDesdePreview()"
+    />
+  </ng-template>
+</p-dialog>
+
+<div class="reportes-layout">
+  <div class="reportes-header">
+    <div class="header-left">
+      <a routerLink="/pos" class="back-link">
+        <span class="pi pi-arrow-left"></span>
+      </a>
+      <h1>Reportes de Ventas</h1>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filtros-bar">
+    <div class="filtro-group">
+      <label>Desde</label>
+      <p-datepicker [(ngModel)]="fechaInicio" dateFormat="dd/mm/yy" [showIcon]="true" />
+    </div>
+    <div class="filtro-group">
+      <label>Hasta</label>
+      <p-datepicker [(ngModel)]="fechaFin" dateFormat="dd/mm/yy" [showIcon]="true" />
+    </div>
+    <p-button label="Buscar" icon="pi pi-search" [loading]="cargando()" (onClick)="buscar()" />
+  </div>
+
+  <!-- Summary cards -->
+  <div class="summary-cards">
+    <div class="summary-card">
+      <span class="summary-label">Total ventas</span>
+      <span class="summary-value">{{ ventas().length }}</span>
+    </div>
+    <div class="summary-card primary">
+      <span class="summary-label">Monto total</span>
+      <span class="summary-value">{{ totalVentas() | currency:'MXN':'symbol':'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <!-- Ventas list -->
+  <div class="ventas-list">
+    @if (cargando()) {
+      <div class="loading-state">
+        <span class="pi pi-spin pi-spinner"></span> Cargando...
+      </div>
+    }
+
+    @for (v of ventas(); track v.id) {
+      <div class="venta-card">
+        <div class="venta-header" (click)="toggleExpand(v.id)">
+          <div class="venta-meta">
+            <span class="venta-id">#{{ v.id }}</span>
+            <span class="venta-fecha">{{ v.fecha + 'Z' | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="venta-usuario">
+              <span class="pi pi-user"></span> {{ v.usuarioNombre }}
+            </span>
+            @if (v.metodoPago) {
+              <span class="venta-metodo" [class.tarjeta]="v.metodoPago === 'tarjeta'">
+                <span class="pi" [class.pi-money-bill]="v.metodoPago === 'efectivo'" [class.pi-credit-card]="v.metodoPago === 'tarjeta'"></span>
+                {{ v.metodoPago }}
+              </span>
+            }
+          </div>
+          <div class="venta-right">
+            <span class="venta-total">{{ v.total | currency:'MXN':'symbol':'1.2-2' }}</span>
+            <p-button
+              icon="pi pi-eye"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              title="Vista previa del ticket"
+              (onClick)="verPreview(v, $event)"
+            />
+            <p-button
+              icon="pi pi-print"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              title="Reimprimir ticket"
+              [disabled]="!hardware.disponible()"
+              [loading]="reimprimiendo()"
+              (onClick)="reimprimir(v, $event)"
+            />
+            <span class="pi expand-icon" [class.pi-chevron-down]="!expandedIds.has(v.id)" [class.pi-chevron-up]="expandedIds.has(v.id)"></span>
+          </div>
+        </div>
+
+        @if (expandedIds.has(v.id)) {
+          <div class="venta-detalles">
+            @for (d of v.detalles; track d.productoId) {
+              <div class="detalle-line">
+                <span class="detalle-nombre">{{ d.productoNombre }}</span>
+                <span class="detalle-cantidad">
+                  {{ d.tipoVenta === 'peso' ? d.cantidad.toFixed(3) + ' kg' : d.cantidad + ' u' }}
+                </span>
+                <span class="detalle-precio">× ${{ d.precioUnitario.toFixed(2) }}</span>
+                <span class="detalle-subtotal">{{ d.subtotal | currency:'MXN':'symbol':'1.2-2' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @empty {
+      @if (!cargando()) {
+        <div class="empty-state">
+          <span class="pi pi-chart-bar"></span>
+          <p>No hay ventas en el período seleccionado</p>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,137 @@
+.cobrar-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.total-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--p-surface-100);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+
+.total-label {
+  font-size: 1rem;
+  color: var(--p-text-muted-color);
+  font-weight: 500;
+}
+
+.total-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--p-primary-color);
+}
+
+.metodo-pago {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metodo-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.metodo-options {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.metodo-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid var(--p-surface-300);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+
+  .pi {
+    font-size: 1.5rem;
+  }
+
+  &:hover {
+    border-color: var(--p-primary-color);
+    color: var(--p-primary-color);
+  }
+
+  &.selected {
+    border-color: var(--p-primary-color);
+    background: var(--p-primary-50);
+    color: var(--p-primary-color);
+    font-weight: 600;
+  }
+}
+
+.efectivo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--p-text-color);
+  }
+}
+
+.cambio-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--p-green-50);
+  border-radius: 6px;
+  border-left: 4px solid var(--p-green-500);
+  margin-top: 0.25rem;
+
+  span:first-child {
+    font-size: 0.9rem;
+    color: var(--p-green-700);
+    font-weight: 500;
+  }
+}
+
+.cambio-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--p-green-600);
+}
+
+.imprimir-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 3.5rem;
+  color: var(--p-green-500);
+}
+
+.success-msg {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+  margin: 0;
+}
+
+.imprimir-pregunta {
+  font-size: 0.95rem;
+  color: var(--p-text-muted-color);
+  margin: 0;
+}

@@ -1,0 +1,119 @@
+<p-toast />
+
+<div class="config-layout">
+  <div class="page-header">
+    <div class="header-left">
+      <a routerLink="/pos" class="back-link">
+        <span class="pi pi-arrow-left"></span>
+      </a>
+      <h1>Configuración</h1>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="loading-state">
+      <span class="pi pi-spin pi-spinner"></span> Cargando...
+    </div>
+  }
+
+  @if (!cargando()) {
+    <div class="config-section">
+      <h2 class="section-title">
+        <span class="pi pi-print"></span> Impresora
+      </h2>
+
+      <div class="form-body">
+        <div class="form-row">
+          <label>Nombre de impresora</label>
+          @if (impresoras.length > 0) {
+            <p-select
+              [options]="impresoras"
+              [(ngModel)]="config.nombreImpresora"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar impresora"
+              styleClass="w-full"
+            />
+          } @else {
+            <input pInputText type="text" [(ngModel)]="config.nombreImpresora" placeholder="Nombre de la impresora" class="w-full" />
+          }
+        </div>
+
+        <div class="form-row">
+          <label>Encabezado del ticket</label>
+          <textarea
+            pInputText
+            [(ngModel)]="config.encabezadoTicket"
+            placeholder="Nombre del negocio, dirección, etc."
+            rows="3"
+            class="w-full"
+            style="resize: vertical;"
+          ></textarea>
+          <small class="hint">Cada línea del texto va centrada en el ticket. Usa Enter para separar líneas.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h2 class="section-title">
+        <span class="pi pi-chart-line"></span> Báscula
+      </h2>
+
+      <div class="form-body">
+        <div class="form-row">
+          <label>Puerto COM</label>
+          @if (puertos.length > 0) {
+            <p-select
+              [options]="puertos"
+              [(ngModel)]="config.puertoBascula"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar puerto"
+              styleClass="w-full"
+            />
+          } @else {
+            <input pInputText type="text" [(ngModel)]="config.puertoBascula" placeholder="Ej: COM3" class="w-full" />
+          }
+        </div>
+
+        <div class="form-row">
+          <label>Baudrate</label>
+          <p-select
+            [options]="baudrateOptions"
+            [(ngModel)]="config.baudrateBascula"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          />
+        </div>
+      </div>
+
+      @if (!hardwareDisponible()) {
+        <div class="hw-warning">
+          <span class="pi pi-exclamation-triangle"></span>
+          HardwareBridge no está disponible. Los dispositivos no se pueden detectar automáticamente.
+        </div>
+      }
+
+      @if (hardwareDisponible()) {
+        <p-button
+          label="Recargar dispositivos"
+          icon="pi pi-refresh"
+          [text]="true"
+          severity="secondary"
+          [loading]="cargandoHardware()"
+          (onClick)="cargarHardware()"
+        />
+      }
+    </div>
+
+    <div class="save-row">
+      <p-button
+        label="Guardar configuración"
+        icon="pi pi-check"
+        [loading]="guardando()"
+        (onClick)="guardar()"
+      />
+    </div>
+  }
+</div>
