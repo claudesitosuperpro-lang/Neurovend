@@ -181,3 +181,13 @@
     color: var(--p-text-color, #1e293b);
   }
 }
+
+.table-row.stock-bajo {
+  background: #fffbeb !important;
+  border-left: 3px solid #f59e0b;
+}
+
+.table-row.sin-stock {
+  background: #fef2f2 !important;
+  border-left: 3px solid #ef4444;
+}

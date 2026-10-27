@@ -146,6 +146,43 @@ public class VentaRepository(string connectionString) : IVentaRepository
         return ventas;
     }
 
+    public async Task<IEnumerable<Venta>> GetMisVentasAsync(long usuarioId, DateOnly inicio, DateOnly fin)
+    {
+        const string sqlVentas = """
+            SELECT v.id, v.fecha, v.fecha_venta AS FechaVenta, v.total, v.metodo_pago AS MetodoPago,
+                   v.estado, u.nombre AS UsuarioNombre
+            FROM ventas v JOIN usuarios u ON v.usuario_id = u.id
+            WHERE v.fecha_venta BETWEEN @inicio AND @fin AND v.estado = 'completada'
+              AND v.usuario_id = @usuarioId
+            ORDER BY v.fecha DESC
+            """;
+        await using var conn = CreateConnection();
+        var ventas = (await conn.QueryAsync<Venta>(sqlVentas, new { inicio, fin, usuarioId })).ToList();
+
+        if (ventas.Count == 0) return ventas;
+
+        var ventaIds = ventas.Select(v => v.Id).ToArray();
+        const string sqlDetalles = """
+            SELECT dv.id, dv.venta_id AS VentaId, dv.producto_id AS ProductoId,
+                   dv.cantidad_kg AS CantidadKg, dv.cantidad_unidades AS CantidadUnidades,
+                   dv.precio_unitario AS PrecioUnitario, dv.subtotal, dv.orden,
+                   p.nombre AS ProductoNombre, p.tipo_venta AS TipoVenta, p.imagen_url AS ImagenUrl
+            FROM detalle_venta dv
+            JOIN productos p ON dv.producto_id = p.id
+            WHERE dv.venta_id = ANY(@ventaIds)
+            ORDER BY dv.venta_id, dv.orden ASC
+            """;
+        var detalles = await conn.QueryAsync<DetalleVenta>(sqlDetalles, new { ventaIds });
+        var detallesPorVenta = detalles.GroupBy(d => d.VentaId).ToDictionary(g => g.Key, g => g.ToList());
+        foreach (var venta in ventas)
+        {
+            if (detallesPorVenta.TryGetValue(venta.Id, out var ventaDetalles))
+                venta.Detalles = ventaDetalles;
+        }
+
+        return ventas;
+    }
+
     public async Task<Venta?> GetByIdAsync(long ventaId)
     {
         const string sql = """

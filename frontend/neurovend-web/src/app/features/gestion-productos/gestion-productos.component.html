@@ -41,7 +41,7 @@
     </div>
 
     @for (p of productos(); track p.id) {
-      <div class="table-row" [class.inactivo]="!p.activo">
+      <div class="table-row" [class.inactivo]="!p.activo" [class.stock-bajo]="p.stockHabilitado && p.stock > 0 && p.stock <= 5" [class.sin-stock]="p.stockHabilitado && p.stock === 0">
         <span class="col-codigo mono">{{ p.codigo }}</span>
         <span class="col-nombre">{{ p.nombre }}</span>
         <span class="col-tipo">

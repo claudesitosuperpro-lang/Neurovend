@@ -74,7 +74,12 @@
       <label>Hasta</label>
       <p-datepicker [(ngModel)]="fechaFin" dateFormat="dd/mm/yy" [showIcon]="true" />
     </div>
+    <div class="filtro-group">
+      <label>Método de pago</label>
+      <p-selectbutton [options]="metodoOptions" [ngModel]="filtroMetodo()" (ngModelChange)="filtroMetodo.set($event)" optionLabel="label" optionValue="value" [allowEmpty]="false" />
+    </div>
     <p-button label="Buscar" icon="pi pi-search" [loading]="cargando()" (onClick)="buscar()" />
+    <p-button label="Exportar CSV" icon="pi pi-download" severity="secondary" [disabled]="!ventasFiltradas().length" (onClick)="exportarCSV()" />
   </div>
 
   <!-- Summary cards -->
@@ -97,7 +102,7 @@
       </div>
     }
 
-    @for (v of ventas(); track v.id) {
+    @for (v of ventasFiltradas(); track v.id) {
       <div class="venta-card">
         <div class="venta-header" (click)="toggleExpand(v.id)">
           <div class="venta-meta">
@@ -163,4 +168,24 @@
       }
     }
   </div>
+
+  @if (productosResumen().length > 0) {
+    <div class="productos-resumen">
+      <h2 class="section-title">Ventas por producto</h2>
+      <div class="productos-resumen-table">
+        <div class="pr-header-row">
+          <span>Producto</span>
+          <span>Cantidad</span>
+          <span>Total</span>
+        </div>
+        @for (p of productosResumen(); track p.nombre) {
+          <div class="pr-row">
+            <span class="pr-nombre">{{ p.nombre }}</span>
+            <span class="pr-cantidad">{{ p.cantidad % 1 === 0 ? p.cantidad : p.cantidad.toFixed(3) }}</span>
+            <span class="pr-total">{{ p.total | currency:'MXN':'symbol':'1.2-2' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>

@@ -1,0 +1,82 @@
+<p-toast />
+
+<div class="mis-ventas-layout">
+  <div class="reportes-header">
+    <div class="header-left">
+      <a routerLink="/pos" class="back-link"><span class="pi pi-arrow-left"></span></a>
+      <h1>Mis Ventas</h1>
+    </div>
+  </div>
+
+  <div class="filtros-bar">
+    <div class="filtro-group">
+      <label>Desde</label>
+      <p-datepicker [(ngModel)]="fechaInicio" dateFormat="dd/mm/yy" [showIcon]="true" />
+    </div>
+    <div class="filtro-group">
+      <label>Hasta</label>
+      <p-datepicker [(ngModel)]="fechaFin" dateFormat="dd/mm/yy" [showIcon]="true" />
+    </div>
+    <p-button label="Buscar" icon="pi pi-search" [loading]="cargando()" (onClick)="buscar()" />
+  </div>
+
+  <div class="summary-cards">
+    <div class="summary-card">
+      <span class="summary-label">Ventas realizadas</span>
+      <span class="summary-value">{{ ventas().length }}</span>
+    </div>
+    <div class="summary-card primary">
+      <span class="summary-label">Total vendido</span>
+      <span class="summary-value">{{ totalVentas() | currency:'MXN':'symbol':'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <div class="ventas-list">
+    @if (cargando()) {
+      <div class="loading-state"><span class="pi pi-spin pi-spinner"></span> Cargando...</div>
+    }
+
+    @for (v of ventas(); track v.id) {
+      <div class="venta-card">
+        <div class="venta-header" (click)="toggleExpand(v.id)">
+          <div class="venta-meta">
+            <span class="venta-id">#{{ v.id }}</span>
+            <span class="venta-fecha">{{ v.fecha + 'Z' | date:'dd/MM/yyyy HH:mm' }}</span>
+            @if (v.metodoPago) {
+              <span class="venta-metodo" [class.tarjeta]="v.metodoPago === 'tarjeta'">
+                <span class="pi" [class.pi-money-bill]="v.metodoPago === 'efectivo'" [class.pi-credit-card]="v.metodoPago === 'tarjeta'"></span>
+                {{ v.metodoPago }}
+              </span>
+            }
+          </div>
+          <div class="venta-right">
+            <span class="venta-total">{{ v.total | currency:'MXN':'symbol':'1.2-2' }}</span>
+            <span class="pi expand-icon" [class.pi-chevron-down]="!expandedIds.has(v.id)" [class.pi-chevron-up]="expandedIds.has(v.id)"></span>
+          </div>
+        </div>
+
+        @if (expandedIds.has(v.id)) {
+          <div class="venta-detalles">
+            @for (d of v.detalles; track d.productoId) {
+              <div class="detalle-line">
+                <span class="detalle-nombre">{{ d.productoNombre }}</span>
+                <span class="detalle-cantidad">{{ d.tipoVenta === 'peso' ? d.cantidad.toFixed(3) + ' kg' : d.cantidad + ' u' }}</span>
+                <span class="detalle-precio">× ${{ d.precioUnitario.toFixed(2) }}</span>
+                <span class="detalle-subtotal">{{ d.subtotal | currency:'MXN':'symbol':'1.2-2' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @empty {
+      @if (!cargando()) {
+        <div class="empty-state">
+          <span class="pi pi-inbox"></span>
+          <p>No tienes ventas en este período</p>
+        </div>
+      }
+    }
+  </div>
+</div>

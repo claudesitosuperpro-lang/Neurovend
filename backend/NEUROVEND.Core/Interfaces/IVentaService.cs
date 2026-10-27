@@ -12,4 +12,5 @@ public interface IVentaService
     Task FinalizarVentaAsync(long ventaId, string metodoPago, decimal montoRecibido, decimal cambio);
     Task CancelarVentaAsync(long ventaId);
     Task<IEnumerable<Venta>> GetVentasPorFechaAsync(DateOnly inicio, DateOnly fin);
+    Task<IEnumerable<Venta>> GetMisVentasAsync(long usuarioId, DateOnly inicio, DateOnly fin);
 }

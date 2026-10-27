@@ -435,3 +435,26 @@
   margin: 0;
   color: var(--p-text-color, #1e293b);
 }
+
+.producto-card.stock-bajo {
+  border-color: #f59e0b !important;
+}
+
+.producto-card.sin-stock {
+  border-color: #ef4444 !important;
+  opacity: 0.7;
+}
+
+.stock-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+
+  &.empty {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}

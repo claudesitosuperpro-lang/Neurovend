@@ -79,6 +79,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return [
       { label: 'Productos', icon: 'pi pi-box', routerLink: '/productos' },
       { label: 'Reportes', icon: 'pi pi-chart-bar', routerLink: '/reportes' },
+      { label: 'Mis ventas', icon: 'pi pi-history', routerLink: '/mis-ventas' },
       { label: 'Usuarios', icon: 'pi pi-users', routerLink: '/usuarios' },
       { label: 'Configuración', icon: 'pi pi-cog', routerLink: '/configuracion' },
       { separator: true },

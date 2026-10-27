@@ -75,6 +75,10 @@ export class ApiService {
     return firstValueFrom(this.http.get<VentaResumenDto[]>(`/api/ventas/reportes?inicio=${inicio}&fin=${fin}`));
   }
 
+  getMisVentas(inicio: string, fin: string) {
+    return firstValueFrom(this.http.get<VentaResumenDto[]>(`/api/ventas/mis-ventas?inicio=${inicio}&fin=${fin}`));
+  }
+
   // ─── Configuracion ────────────────────────────────────────────────
   getConfiguracion() {
     return firstValueFrom(this.http.get<Configuracion>('/api/configuracion/'));

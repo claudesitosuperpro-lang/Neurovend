@@ -84,4 +84,7 @@ public class VentaService(IVentaRepository ventaRepository, IProductoRepository 
 
     public Task<IEnumerable<Venta>> GetVentasPorFechaAsync(DateOnly inicio, DateOnly fin) =>
         ventaRepository.GetVentasPorFechaAsync(inicio, fin);
+
+    public Task<IEnumerable<Venta>> GetMisVentasAsync(long usuarioId, DateOnly inicio, DateOnly fin) =>
+        ventaRepository.GetMisVentasAsync(usuarioId, inicio, fin);
 }

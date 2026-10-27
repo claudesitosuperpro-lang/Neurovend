@@ -268,6 +268,16 @@ ventas.MapDelete("/{ventaId:long}", async (long ventaId, IVentaService ventaServ
     return Results.NoContent();
 });
 
+// Mis ventas: ventas del usuario autenticado por rango de fechas
+ventas.MapGet("/mis-ventas", async (DateOnly? inicio, DateOnly? fin, IVentaService ventaService, ClaimsPrincipal user) =>
+{
+    var usuarioId = long.Parse(user.FindFirst("id")!.Value);
+    var fechaInicio = inicio ?? DateOnly.FromDateTime(DateTime.Today);
+    var fechaFin = fin ?? DateOnly.FromDateTime(DateTime.Today);
+    var lista = await ventaService.GetMisVentasAsync(usuarioId, fechaInicio, fechaFin);
+    return Results.Ok(lista);
+});
+
 // Reportes de ventas por rango de fechas (solo dueño)
 ventas.MapGet("/reportes", async (DateOnly? inicio, DateOnly? fin, IVentaService ventaService, ClaimsPrincipal user) =>
 {

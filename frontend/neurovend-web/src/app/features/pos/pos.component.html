@@ -28,6 +28,7 @@
         <span class="pi pi-circle-fill hw-offline" title="HardwareBridge sin conexión"></span>
       }
     </span>
+    <p-button label="Mis ventas" icon="pi pi-history" [text]="true" severity="secondary" size="small" routerLink="/mis-ventas" />
     <p-button label="Salir" icon="pi pi-sign-out" [text]="true" severity="secondary" size="small" (onClick)="logout()" />
   </div>
 }
@@ -59,11 +60,16 @@
 
     <div class="productos-grid">
       @for (p of productos(); track p.id) {
-        <div class="producto-card" (click)="seleccionarProducto(p)" [class.peso]="p.tipoVenta === 'peso'">
+        <div class="producto-card" (click)="seleccionarProducto(p)" [class.peso]="p.tipoVenta === 'peso'" [class.stock-bajo]="p.stockHabilitado && p.stock > 0 && p.stock <= 5" [class.sin-stock]="p.stockHabilitado && p.stock === 0">
           @if (p.imagenUrl) {
             <img [src]="p.imagenUrl" [alt]="p.nombre" class="producto-img" loading="lazy" (error)="onImageError($event)" />
           }
           <div class="producto-nombre">{{ p.nombre }}</div>
+          @if (p.stockHabilitado && p.stock <= 5) {
+            <span class="stock-badge" [class.empty]="p.stock === 0">
+              {{ p.stock === 0 ? 'Sin stock' : 'Stock: ' + (p.tipoVenta === 'peso' ? p.stock.toFixed(1) + ' kg' : p.stock + ' u') }}
+            </span>
+          }
           <div class="producto-precio">
             {{ precioProducto(p) | currency:'MXN':'symbol':'1.2-2' }}
             <span class="producto-tipo-badge">{{ p.tipoVenta === 'peso' ? 'kg' : 'u' }}</span>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -6,6 +6,7 @@ import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { Toast } from 'primeng/toast';
+import { SelectButton } from 'primeng/selectbutton';
 import { MessageService } from 'primeng/api';
 import { ApiService } from '../../core/services/api.service';
 import { HardwareService } from '../../core/services/hardware.service';
@@ -14,7 +15,7 @@ import { VentaResumenDto, Configuracion } from '../../core/models';
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, Button, DatePicker, DialogModule, Toast],
+  imports: [CommonModule, FormsModule, RouterModule, Button, DatePicker, DialogModule, Toast, SelectButton],
   providers: [MessageService],
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.scss',
@@ -36,6 +37,32 @@ export class ReportesComponent implements OnInit {
   config: Configuracion | null = null;
   ventaPreview: VentaResumenDto | null = null;
   mostrarPreview = false;
+
+  filtroMetodo = signal<'todos' | 'efectivo' | 'tarjeta'>('todos');
+  metodoOptions = [
+    { label: 'Todos', value: 'todos' },
+    { label: 'Efectivo', value: 'efectivo' },
+    { label: 'Tarjeta', value: 'tarjeta' },
+  ];
+
+  ventasFiltradas = computed(() => {
+    const m = this.filtroMetodo();
+    if (m === 'todos') return this.ventas();
+    return this.ventas().filter(v => v.metodoPago === m);
+  });
+
+  productosResumen = computed(() => {
+    const mapa = new Map<string, { nombre: string; cantidad: number; total: number }>();
+    for (const venta of this.ventasFiltradas()) {
+      for (const d of venta.detalles) {
+        const entry = mapa.get(d.productoNombre) ?? { nombre: d.productoNombre, cantidad: 0, total: 0 };
+        entry.cantidad += d.cantidad;
+        entry.total += d.subtotal;
+        mapa.set(d.productoNombre, entry);
+      }
+    }
+    return [...mapa.values()].sort((a, b) => b.total - a.total);
+  });
 
   ngOnInit(): void {
     this.hardware.verificarDisponibilidad();
@@ -135,8 +162,29 @@ export class ReportesComponent implements OnInit {
     }
   }
 
-  totalVentas(): number {
-    return this.ventas().reduce((s, v) => s + v.total, 0);
+  totalVentas = computed(() => this.ventasFiltradas().reduce((s, v) => s + v.total, 0));
+
+  exportarCSV(): void {
+    const ventas = this.ventasFiltradas();
+    if (!ventas.length) return;
+    const filas = [
+      ['ID', 'Fecha', 'Cajero', 'Método Pago', 'Total'],
+      ...ventas.map(v => [
+        String(v.id),
+        new Date(v.fecha + 'Z').toLocaleString('es-MX'),
+        v.usuarioNombre,
+        v.metodoPago ?? '',
+        v.total.toFixed(2),
+      ]),
+    ];
+    const csv = filas.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ventas-${this.toIso(this.fechaInicio)}-${this.toIso(this.fechaFin)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   private toIso(d: Date): string {
