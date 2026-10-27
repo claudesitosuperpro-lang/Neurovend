@@ -84,6 +84,22 @@ export interface RegisterRequest {
   rol: 'dueño' | 'empleado';
 }
 
+export interface UsuarioDto {
+  id: number;
+  nombre: string;
+  username: string;
+  rol: 'dueño' | 'empleado';
+  activo: boolean;
+  creadoEn: string;
+}
+
+export interface UpdateUsuarioRequest {
+  nombre: string;
+  username: string;
+  rol: 'dueño' | 'empleado';
+  password?: string;
+}
+
 export interface Configuracion {
   puertoBascula: string;
   baudrateBascula: number;

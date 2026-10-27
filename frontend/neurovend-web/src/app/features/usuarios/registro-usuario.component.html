@@ -1,56 +1,121 @@
 <p-toast />
 
-<div class="usuarios-layout">
-  <div class="page-header">
+<div class="gestion-layout">
+  <div class="gestion-header">
     <div class="header-left">
       <a routerLink="/pos" class="back-link">
         <span class="pi pi-arrow-left"></span>
       </a>
-      <h1>Registrar Usuario</h1>
+      <h1>Gestión de Usuarios</h1>
+    </div>
+    <div class="header-actions">
+      <p-button label="Nuevo usuario" icon="pi pi-plus" (onClick)="abrirCrear()" />
     </div>
   </div>
 
-  <div class="form-card">
-    <div class="form-body">
-      <div class="form-row">
-        <label>Nombre completo *</label>
-        <input pInputText type="text" [(ngModel)]="form.nombre" placeholder="Ej: Juan Pérez" class="w-full" />
-      </div>
-
-      <div class="form-row">
-        <label>Nombre de usuario *</label>
-        <input pInputText type="text" [(ngModel)]="form.username" placeholder="Ej: juan.perez" class="w-full" autocomplete="off" />
-      </div>
-
-      <div class="form-row">
-        <label>Contraseña *</label>
-        <input pInputText type="password" [(ngModel)]="form.password" placeholder="Mínimo 6 caracteres" class="w-full" autocomplete="new-password" />
-      </div>
-
-      <div class="form-row">
-        <label>Confirmar contraseña *</label>
-        <input pInputText type="password" [(ngModel)]="confirmPassword" placeholder="Repite la contraseña" class="w-full" autocomplete="new-password" />
-      </div>
-
-      <div class="form-row">
-        <label>Rol</label>
-        <p-selectbutton
-          [options]="rolOptions"
-          [(ngModel)]="form.rol"
-          optionLabel="label"
-          optionValue="value"
-        />
-      </div>
-
-      <div class="form-actions">
-        <p-button
-          label="Registrar usuario"
-          icon="pi pi-user-plus"
-          [loading]="guardando()"
-          (onClick)="registrar()"
-          styleClass="w-full"
-        />
-      </div>
+  @if (cargando()) {
+    <div class="loading-state">
+      <span class="pi pi-spin pi-spinner"></span> Cargando...
     </div>
+  }
+
+  <div class="usuarios-table">
+    <div class="table-header-row">
+      <span class="col-nombre">Nombre</span>
+      <span class="col-username">Usuario</span>
+      <span class="col-rol">Rol</span>
+      <span class="col-estado">Activo</span>
+      <span class="col-acciones">Acciones</span>
+    </div>
+
+    @for (u of usuarios(); track u.id) {
+      <div class="table-row" [class.inactivo]="!u.activo">
+        <span class="col-nombre">{{ u.nombre }}</span>
+        <span class="col-username mono">{{ u.username }}</span>
+        <span class="col-rol">
+          <span class="rol-badge" [class.dueno]="u.rol === 'dueño'">
+            {{ u.rol === 'dueño' ? 'Dueño' : 'Empleado' }}
+          </span>
+        </span>
+        <span class="col-estado">
+          <p-toggleswitch [ngModel]="u.activo" (onChange)="toggleActivo(u)" />
+        </span>
+        <span class="col-acciones">
+          <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (onClick)="abrirEditar(u)" />
+        </span>
+      </div>
+    }
+
+    @if (!cargando() && usuarios().length === 0) {
+      <div class="empty-state">
+        <span class="pi pi-users"></span>
+        <p>No hay usuarios</p>
+      </div>
+    }
   </div>
 </div>
+
+<!-- Create / Edit dialog -->
+<p-dialog
+  [header]="editandoId ? 'Editar usuario' : 'Nuevo usuario'"
+  [(visible)]="mostrarDialog"
+  [modal]="true"
+  [style]="{ width: '420px' }"
+>
+  <div class="form-body" (keydown.enter)="guardar()">
+    <div class="form-row">
+      <label>Nombre *</label>
+      <input pInputText type="text" [(ngModel)]="form.nombre" placeholder="Nombre completo" class="w-full" />
+    </div>
+
+    <div class="form-row">
+      <label>Usuario *</label>
+      <input pInputText type="text" [(ngModel)]="form.username" placeholder="Nombre de usuario" class="w-full" autocomplete="off" />
+    </div>
+
+    <div class="form-row">
+      <label>Rol</label>
+      <p-selectbutton
+        [options]="rolOptions"
+        [(ngModel)]="form.rol"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    @if (editandoId === null) {
+      <div class="form-row">
+        <label>Contraseña *</label>
+        <p-password [(ngModel)]="form.password" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" placeholder="Mínimo 6 caracteres" />
+      </div>
+      <div class="form-row">
+        <label>Confirmar contraseña *</label>
+        <p-password [(ngModel)]="confirmPassword" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" placeholder="Repite la contraseña" />
+      </div>
+    }
+
+    @if (editandoId !== null) {
+      <div class="form-divider">Cambiar contraseña (opcional)</div>
+      <div class="form-row">
+        <label>Nueva contraseña</label>
+        <p-password [(ngModel)]="nuevaPassword" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" placeholder="Dejar vacío para no cambiar" />
+      </div>
+      @if (nuevaPassword) {
+        <div class="form-row">
+          <label>Confirmar nueva contraseña</label>
+          <p-password [(ngModel)]="confirmNuevaPassword" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" placeholder="Repite la nueva contraseña" />
+        </div>
+      }
+    }
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="mostrarDialog = false" />
+    <p-button
+      [label]="editandoId ? 'Guardar' : 'Crear'"
+      icon="pi pi-check"
+      [loading]="guardando()"
+      (onClick)="guardar()"
+    />
+  </ng-template>
+</p-dialog>

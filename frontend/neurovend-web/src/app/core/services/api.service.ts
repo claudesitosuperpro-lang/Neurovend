@@ -5,6 +5,7 @@ import {
   Producto, CreateProductoRequest, UpdateProductoRequest,
   DetalleVenta, AgregarProductoRequest, FinalizarVentaRequest,
   VentaResumenDto, RegisterRequest, Configuracion,
+  UsuarioDto, UpdateUsuarioRequest,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -86,6 +87,19 @@ export class ApiService {
 
   updateConfiguracion(req: Configuracion) {
     return firstValueFrom(this.http.put<void>('/api/configuracion/', req));
+  }
+
+  // ─── Usuarios ─────────────────────────────────────────────────────
+  getUsuarios() {
+    return firstValueFrom(this.http.get<UsuarioDto[]>('/api/usuarios/'));
+  }
+
+  updateUsuario(id: number, req: UpdateUsuarioRequest) {
+    return firstValueFrom(this.http.put<void>(`/api/usuarios/${id}`, req));
+  }
+
+  toggleUsuarioActivo(id: number, activo: boolean) {
+    return firstValueFrom(this.http.patch<void>(`/api/usuarios/${id}/activo`, { activo }));
   }
 
   // ─── Auth ─────────────────────────────────────────────────────────

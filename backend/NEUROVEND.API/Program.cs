@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using NEUROVEND.Core.DTOs.Auth;
 using NEUROVEND.Core.DTOs.Configuracion;
 using NEUROVEND.Core.DTOs.Productos;
+using NEUROVEND.Core.DTOs.Usuarios;
 using NEUROVEND.Core.DTOs.Ventas;
 using NEUROVEND.Core.Entities;
 using NEUROVEND.Core.Interfaces;
@@ -112,6 +113,51 @@ auth.MapPost("/register", async (RegisterRequest req, IAuthService authService, 
     var ok = await authService.RegisterAsync(req.Nombre, req.Username, req.Password, req.Rol);
     return ok ? Results.Ok() : Results.Conflict(new { error = "El username ya existe" });
 }).RequireAuthorization();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USUARIOS
+// ═══════════════════════════════════════════════════════════════════════════════
+var usuarios = app.MapGroup("/api/usuarios").RequireAuthorization();
+
+usuarios.MapGet("/", async (IUsuarioRepository usuarioRepo, ClaimsPrincipal user) =>
+{
+    if (!user.IsInRole("dueño")) return Results.Forbid();
+    var lista = await usuarioRepo.GetAllAsync();
+    var dtos = lista.Select(u => new UsuarioDto(u.Id, u.Nombre, u.Username, u.Rol, u.Activo, u.CreadoEn));
+    return Results.Ok(dtos);
+});
+
+usuarios.MapPut("/{id:long}", async (long id, UpdateUsuarioRequest req, IUsuarioRepository usuarioRepo, ClaimsPrincipal user) =>
+{
+    if (!user.IsInRole("dueño")) return Results.Forbid();
+    if (string.IsNullOrWhiteSpace(req.Nombre) || string.IsNullOrWhiteSpace(req.Username))
+        return Results.BadRequest(new { error = "Nombre y username son obligatorios" });
+
+    if (await usuarioRepo.ExistsByUsernameExcludingIdAsync(req.Username, id))
+        return Results.Conflict(new { error = "El username ya está en uso" });
+
+    var existentes = await usuarioRepo.GetAllAsync();
+    var actual = existentes.FirstOrDefault(u => u.Id == id);
+    if (actual == null) return Results.NotFound();
+
+    var passwordHash = string.IsNullOrWhiteSpace(req.Password)
+        ? actual.PasswordHash
+        : BCrypt.Net.BCrypt.HashPassword(req.Password);
+
+    actual.Nombre = req.Nombre;
+    actual.Username = req.Username;
+    actual.Rol = req.Rol;
+    actual.PasswordHash = passwordHash;
+    await usuarioRepo.UpdateAsync(actual);
+    return Results.NoContent();
+});
+
+usuarios.MapPatch("/{id:long}/activo", async (long id, ToggleActivoRequest req, IUsuarioRepository usuarioRepo, ClaimsPrincipal user) =>
+{
+    if (!user.IsInRole("dueño")) return Results.Forbid();
+    await usuarioRepo.ToggleActivoAsync(id, req.Activo);
+    return Results.NoContent();
+});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PRODUCTOS

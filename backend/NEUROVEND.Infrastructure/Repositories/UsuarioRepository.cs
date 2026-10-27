@@ -26,6 +26,23 @@ public class UsuarioRepository(string connectionString) : IUsuarioRepository
         return await conn.ExecuteScalarAsync<int>(sql, new { username }) > 0;
     }
 
+    public async Task<bool> ExistsByUsernameExcludingIdAsync(string username, long excludeId)
+    {
+        const string sql = "SELECT COUNT(1) FROM usuarios WHERE username = @username AND id <> @excludeId";
+        await using var conn = CreateConnection();
+        return await conn.ExecuteScalarAsync<int>(sql, new { username, excludeId }) > 0;
+    }
+
+    public async Task<IEnumerable<Usuario>> GetAllAsync()
+    {
+        const string sql = """
+            SELECT id, nombre, username, password AS PasswordHash, rol, activo, creado_en AS CreadoEn
+            FROM usuarios ORDER BY creado_en ASC
+            """;
+        await using var conn = CreateConnection();
+        return await conn.QueryAsync<Usuario>(sql);
+    }
+
     public async Task CreateAsync(Usuario usuario)
     {
         const string sql = """
@@ -34,5 +51,22 @@ public class UsuarioRepository(string connectionString) : IUsuarioRepository
             """;
         await using var conn = CreateConnection();
         await conn.ExecuteAsync(sql, usuario);
+    }
+
+    public async Task UpdateAsync(Usuario usuario)
+    {
+        const string sql = """
+            UPDATE usuarios SET nombre = @Nombre, username = @Username, rol = @Rol, password = @PasswordHash
+            WHERE id = @Id
+            """;
+        await using var conn = CreateConnection();
+        await conn.ExecuteAsync(sql, usuario);
+    }
+
+    public async Task ToggleActivoAsync(long id, bool activo)
+    {
+        const string sql = "UPDATE usuarios SET activo = @activo WHERE id = @id";
+        await using var conn = CreateConnection();
+        await conn.ExecuteAsync(sql, new { id, activo });
     }
 }

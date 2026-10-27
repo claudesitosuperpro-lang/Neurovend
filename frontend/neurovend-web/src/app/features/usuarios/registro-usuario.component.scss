@@ -4,8 +4,8 @@
   background: var(--p-surface-50, #f8fafc);
 }
 
-.usuarios-layout {
-  max-width: 480px;
+.gestion-layout {
+  max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
   display: flex;
@@ -13,9 +13,11 @@
   gap: 1.25rem;
 }
 
-.page-header {
+.gestion-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 
   h1 {
     font-size: 1.5rem;
@@ -26,6 +28,12 @@
 }
 
 .header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -48,17 +56,90 @@
   }
 }
 
-.form-card {
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+/* ─── Table ─────────────────────────────────────────────────────── */
+
+.usuarios-table {
   background: #fff;
   border: 1px solid var(--p-surface-200, #e2e8f0);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 10px;
+  overflow: hidden;
 }
+
+.table-header-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 110px 80px 90px;
+  padding: 0.6rem 1rem;
+  background: var(--p-surface-50, #f8fafc);
+  border-bottom: 2px solid var(--p-surface-200, #e2e8f0);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 110px 80px 90px;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--p-surface-100, #f1f5f9);
+  align-items: center;
+  font-size: 0.875rem;
+  transition: background 0.1s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: var(--p-surface-50, #f8fafc); }
+  &.inactivo { opacity: 0.55; }
+}
+
+.col-nombre { font-weight: 500; color: var(--p-text-color, #1e293b); }
+.col-username { color: var(--p-text-muted-color, #64748b); }
+.col-acciones { display: flex; gap: 0.25rem; }
+
+.mono { font-family: monospace; font-size: 0.8rem; }
+
+.rol-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  background: var(--p-surface-100, #f1f5f9);
+  color: var(--p-text-muted-color, #64748b);
+
+  &.dueno {
+    background: var(--p-primary-50, #eff6ff);
+    color: var(--p-primary-600, #2563eb);
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  color: var(--p-text-muted-color, #94a3b8);
+
+  .pi { font-size: 2.5rem; }
+  p { margin: 0; }
+}
+
+/* ─── Dialog form ────────────────────────────────────────────────── */
 
 .form-body {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1rem;
+  padding: 0.25rem 0;
 }
 
 .form-row {
@@ -73,6 +154,12 @@
   }
 }
 
-.form-actions {
-  padding-top: 0.5rem;
+.form-divider {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--p-text-muted-color, #94a3b8);
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--p-surface-200, #e2e8f0);
 }
