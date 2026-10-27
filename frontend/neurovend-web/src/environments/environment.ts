@@ -1,4 +1,6 @@
+const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
 export const environment = {
-  production: false,
-  apiUrl: '',  // vacío = mismo origen (el proxy de dev redirige /api a localhost:5115)
+  production: !isLocal,
+  apiUrl: isLocal ? '' : 'https://silent-summit-299.fly.dev',
 };
