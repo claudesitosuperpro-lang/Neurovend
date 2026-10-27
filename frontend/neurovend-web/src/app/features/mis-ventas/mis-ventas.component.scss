@@ -246,3 +246,77 @@
   .pi { font-size: 2.5rem; }
   p { margin: 0; }
 }
+
+/* ─── Ticket preview ──────────────────────────────────────────── */
+
+.ticket-preview {
+  background: #fafafa;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ticket-header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  letter-spacing: 1px;
+}
+
+.ticket-divider {
+  color: #888;
+  letter-spacing: -0.5px;
+  overflow: hidden;
+}
+
+.ticket-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  color: #333;
+}
+
+.ticket-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ticket-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.ticket-item-nombre {
+  font-weight: 600;
+}
+
+.ticket-item-detalle {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 0.75rem;
+  color: #444;
+  font-size: 0.75rem;
+}
+
+.ticket-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0.25rem 0;
+}
+
+.ticket-pago {
+  font-size: 0.75rem;
+  color: #444;
+}

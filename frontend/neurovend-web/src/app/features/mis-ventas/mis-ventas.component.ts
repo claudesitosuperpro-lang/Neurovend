@@ -4,16 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { VentaResumenDto } from '../../core/models';
+import { HardwareService } from '../../core/services/hardware.service';
+import { VentaResumenDto, Configuracion } from '../../core/models';
 
 @Component({
   selector: 'app-mis-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, Button, DatePicker, Toast],
+  imports: [CommonModule, FormsModule, RouterModule, Button, DatePicker, DialogModule, Toast],
   providers: [MessageService],
   templateUrl: './mis-ventas.component.html',
   styleUrl: './mis-ventas.component.scss',
@@ -22,21 +24,100 @@ export class MisVentasComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private msg = inject(MessageService);
+  hardware = inject(HardwareService);
 
   usuario = this.auth.usuario;
 
   ventas = signal<VentaResumenDto[]>([]);
   cargando = signal(false);
+  reimprimiendo = signal(false);
 
   fechaInicio: Date = this.hoy();
   fechaFin: Date = this.hoy();
 
   expandedIds = new Set<number>();
 
+  config: Configuracion | null = null;
+  ventaPreview: VentaResumenDto | null = null;
+  mostrarPreview = false;
+
   totalVentas = computed(() => this.ventas().reduce((s, v) => s + v.total, 0));
 
   ngOnInit(): void {
+    this.hardware.verificarDisponibilidad();
+    this.cargarConfig();
     this.buscar();
+  }
+
+  private async cargarConfig(): Promise<void> {
+    try { this.config = await this.api.getConfiguracion(); } catch {}
+  }
+
+  verPreview(v: VentaResumenDto, event: Event): void {
+    event.stopPropagation();
+    this.ventaPreview = v;
+    this.mostrarPreview = true;
+  }
+
+  async reimprimir(v: VentaResumenDto, event: Event): Promise<void> {
+    event.stopPropagation();
+    if (!this.hardware.disponible()) {
+      this.msg.add({ severity: 'warn', summary: 'Hardware no disponible', detail: 'HardwareBridge no está conectado', life: 3000 });
+      return;
+    }
+    this.reimprimiendo.set(true);
+    try {
+      const impresora = this.config?.nombreImpresora ?? 'Impresora Termica';
+      await this.hardware.imprimir(impresora, this.buildTicket(v));
+      this.msg.add({ severity: 'success', summary: 'Impreso', detail: `Ticket #${v.id} enviado a impresora`, life: 2500 });
+    } catch {
+      this.msg.add({ severity: 'error', summary: 'Error de impresión', detail: 'No se pudo imprimir el ticket', life: 3000 });
+    } finally {
+      this.reimprimiendo.set(false);
+    }
+  }
+
+  async reimprimirDesdePreview(): Promise<void> {
+    if (!this.ventaPreview) return;
+    this.mostrarPreview = false;
+    await this.reimprimir(this.ventaPreview, new Event('click'));
+  }
+
+  private buildTicket(v: VentaResumenDto): string {
+    const encabezado = this.config?.encabezadoTicket ?? 'NEUROVEND';
+    const lineas: number[] = [];
+    const ESC = 0x1B, GS = 0x1D;
+    const enc = new TextEncoder();
+    const push = (data: number[] | Uint8Array) => lineas.push(...Array.from(data));
+    const txt = (s: string) => push(enc.encode(s));
+
+    push([ESC, 0x40]);
+    push([ESC, 0x61, 0x01]);
+    for (const l of encabezado.split('\n')) txt(l + '\n');
+    push([ESC, 0x61, 0x00]);
+    txt('--------------------------------\n');
+    txt(`Fecha: ${new Date(v.fecha + 'Z').toLocaleString('es-MX')}\n`);
+    txt(`Folio: #${v.id}\n`);
+    txt('--------------------------------\n');
+
+    for (const d of v.detalles) {
+      const cant = d.tipoVenta === 'peso' ? `${d.cantidad.toFixed(3)}kg` : `${d.cantidad}u`;
+      txt(`${d.productoNombre}\n`);
+      txt(`  ${cant} x $${d.precioUnitario.toFixed(2)} = $${d.subtotal.toFixed(2)}\n`);
+    }
+
+    txt('--------------------------------\n');
+    push([ESC, 0x45, 0x01]);
+    txt(`TOTAL: $${v.total.toFixed(2)}\n`);
+    push([ESC, 0x45, 0x00]);
+    if (v.metodoPago) txt(`Pago: ${v.metodoPago}\n`);
+    txt('\n\n\n');
+    push([GS, 0x56, 0x41, 0x03]);
+
+    const bytes = new Uint8Array(lineas);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
   }
 
   async buscar(): Promise<void> {
