@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseWindowsService();
 
 // Permitir llamadas desde el frontend Angular (localhost)
 builder.Services.AddCors(options =>
