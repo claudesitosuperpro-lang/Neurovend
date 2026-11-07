@@ -25,17 +25,17 @@ C:\NEUROVEND\
     └── neurovend-web\         ← Angular 18 app (TODO: construir)
 ```
 
-## Estado actual (2026-10-26)
-**Backend: COMPLETO Y COMPILA.** Todos los endpoints, repositorios y servicios están implementados.
-**Frontend: PENDIENTE.** Solo el scaffolding de Angular existe. Toda la UI está por construir.
+## Estado actual (2026-11-07)
+**Sistema COMPLETO Y EN PRODUCCIÓN.** Backend en Fly.io, frontend en Vercel.
+- Frontend: Angular 22 + PrimeNG 22, todas las pantallas implementadas y funcionando.
+- Últimas features agregadas: categorías de productos, cierre de caja, sonido al agregar, cobro exacto.
 
-## Próxima tarea inmediata
-Construir el frontend Angular. Empezar por:
-1. Configurar Supabase (connection string en appsettings.json)
-2. AuthModule (Login + JWT)
-3. PosModule (Dashboard principal)
+## Pendiente prioritario
+1. Asignar categorías a productos existentes (manualmente desde /productos)
+2. Reimprimir ticket en Reportes (reconstruir ESC/POS desde VentaResumenDto)
+3. Seguridad: rotar credenciales Supabase y JWT key (están en git en texto plano)
 
-Ver `agents/PROGRESS.md` para el plan detallado.
+Ver `agents/PROGRESS.md` para el estado detallado.
 
 ## Decisiones importantes (NO cambiar sin discutir)
 - UI Library: **PrimeNG** (mejor para táctil/tablet) o Angular Material — decidir al inicio del frontend

@@ -1,6 +1,6 @@
 # NEUROVEND — Estado del Desarrollo y Próximos Pasos
 
-**Última actualización:** 2026-10-27
+**Última actualización:** 2026-11-07
 
 ---
 
@@ -13,68 +13,74 @@
 | NEUROVEND.API | ✅ COMPLETO |
 | NEUROVEND.HardwareBridge | ✅ COMPLETO |
 | NEUROVEND.Tests | ⬜ PENDIENTE (no prioritario) |
-| schema.sql | ✅ LISTO |
-| Frontend Angular | 🟡 EN PROGRESO — ~90% completo |
+| schema.sql | ✅ LISTO (incluye categoria) |
+| Frontend Angular | ✅ COMPLETO Y EN PRODUCCIÓN |
 | Configuración Supabase | ✅ CONECTADO Y FUNCIONANDO |
 
 ---
 
-## LO QUE ESTÁ HECHO (al 2026-10-27)
+## LO QUE ESTÁ HECHO (al 2026-11-07)
 
 ### Backend
 - `.NET 9` Minimal APIs — todos los endpoints implementados y compilando
 - Supabase configurado, schema ejecutado, admin `admin/Admin1234` funcionando con BCrypt real
 - HardwareBridge en puerto 5001
+- **Endpoint `GET /api/productos/categorias`** — devuelve categorías únicas activas
+- **Endpoint `GET /api/productos/?categoria=`** — filtra por categoría en POS
+- **Endpoint `GET /api/ventas/cierre?inicio=&fin=`** — cierre de caja con desglose por categoría
 
 ### Frontend Angular 22 + PrimeNG 22
 - **Core completo:** models, auth.service, hardware.service, api.service, interceptor, guards
+- **SoundService**: beep programático con Web Audio API (sin archivo de audio)
 - **Login:** pantalla completa con validación y JWT
 - **POS Dashboard (`/pos`):**
   - Búsqueda de productos con debounce 300ms
+  - **Chips de categoría** bajo el buscador para filtrar por categoría (aparecen solo si hay categorías definidas)
   - Grid de productos con cards clickables
   - Múltiples cuentas (custom tabs) — cada una es una Venta en Supabase
   - Tabla de detalles editable (cantidad inline con InputNumber)
   - Diálogos para productos de peso (kg) y unidad (cantidad)
   - Leer báscula desde HardwareBridge
   - Botones: Limpiar cuenta, Cobrar, Nueva cuenta, Cerrar cuenta
-  - Navbar con menú para dueños (Productos, Reportes, Usuarios, Configuración)
-  - Integración CobrarComponent
+  - **Sonido beep** al confirmar agregar un producto a la cuenta
+  - Navbar con menú para dueños: Productos, Reportes, Cierre de caja, Mis ventas, Usuarios, Configuración
 - **CobrarComponent:**
   - Dos pasos: cobrar (efectivo/tarjeta) → imprimir ticket
   - Efectivo: monto recibido, cálculo de cambio en tiempo real
+  - **Botón "Exacto"** para setear monto recibido = total en un clic
   - Impresión ESC/POS vía HardwareBridge (base64)
-  - Botón Imprimir deshabilitado si HardwareBridge no disponible
 - **Gestión Productos (`/productos`):**
-  - Tabla de todos los productos (activos e inactivos)
+  - Tabla con columna Categoría (badge morado)
   - CRUD completo: crear, editar, toggle activo, eliminar con ConfirmDialog
-  - Formulario con SelectButton tipo venta (peso/unidad), precios, stock
-- **Reportes (`/reportes`):**
-  - DatePicker rango desde/hasta
-  - Lista de ventas con expand para ver detalles
-  - Cards de resumen: número de ventas + monto total
-- **Usuarios (`/usuarios`):**
-  - Formulario registro nuevo usuario (nombre, username, password, rol)
-  - SelectButton para rol (empleado/dueño)
-- **Configuración (`/configuracion`):**
-  - Sección impresora: nombre (dropdown si HardwareBridge disponible), encabezado ticket
-  - Sección báscula: puerto COM (dropdown), baudrate
-  - Recarga automática de dispositivos vía HardwareBridge
+  - Formulario incluye campo **Categoría** (texto libre)
+- **Reportes (`/reportes`):** DatePicker rango, lista de ventas expandibles, cards de resumen
+- **Cierre de Caja (`/cierre-caja`) — NUEVO:**
+  - DatePicker rango (hoy por defecto)
+  - Cards: total ventas, monto total, efectivo, tarjeta, ticket promedio
+  - Tabla de ventas por categoría con barra de porcentaje visual
+  - Solo accesible para dueños
+- **Usuarios (`/usuarios`):** lista, crear, editar, toggle activo, protección auto-desactivación
+- **Mis Ventas (`/mis-ventas`):** con reimpresión de ticket
+- **Configuración (`/configuracion`):** impresora + báscula + HardwareBridge
 - **Routing:** todas las rutas lazy-loaded con guards (authGuard, duenoGuard)
 - **Build:** compila sin errores ✅
+
+### BD (Supabase)
+- `productos.categoria VARCHAR(50)` — columna nullable, ya ejecutada ✅
+- `idx_productos_categoria` — índice sobre categoria ✅
+- Productos existentes antes de 2026-11-07 tienen `categoria = NULL` → asignar desde Gestión de Productos
 
 ---
 
 ## PENDIENTE
 
 ### Funcional
-1. **Estilos globales / pulido visual** — layout general, responsive para tablet
-2. **Probar flujo completo:** login → POS → agregar productos → cobrar → imprimir
-3. **Probar rutas dueño:** productos, reportes, usuarios, configuración
+1. **Asignar categorías a productos existentes** — hacerlo manualmente desde /productos
+2. **Reimprimir ticket en Reportes** — botón pendiente (requiere reconstruir ticket ESC/POS desde VentaResumenDto)
 
-### Técnico menor
-1. Eliminar imports no usados en cobrar.component.ts (warnings de compilación)
-2. Considerar PosComponent: inicializar `localCantidades` cuando se cargue la primera cuenta
-3. En Reportes: botón reimprimir (requiere reconstruir ticket ESC/POS desde VentaResumenDto)
+### Técnico
+1. **Seguridad CRÍTICA**: appsettings.json tiene credenciales Supabase y JWT key en git. Rotar contraseña Supabase y JWT key, actualizar secrets en Fly.io.
+2. **Local dev apunta a producción**: apiInterceptor hardcodea fly.io sin excepción para localhost.
 
 ---
 
@@ -91,6 +97,8 @@
 | Hardware | Bridge local .exe | Acceso a COM/USB sin backend cloud |
 | PrimeNG | v22 | Táctil/tablet, componentes completos |
 | Temas PrimeNG | @primeuix/themes/Aura | Reemplaza @primeng/themes deprecated |
+| Categorías | Texto libre en producto | Sin tabla separada, sin overhead |
+| Sonido | Web Audio API (programático) | Sin archivo de audio extra |
 
 ---
 
