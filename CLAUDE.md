@@ -31,9 +31,8 @@ C:\NEUROVEND\
 - Últimas features agregadas: categorías de productos, cierre de caja, sonido al agregar, cobro exacto.
 
 ## Pendiente prioritario
-1. Asignar categorías a productos existentes (manualmente desde /productos)
-2. Reimprimir ticket en Reportes (reconstruir ESC/POS desde VentaResumenDto)
-3. Seguridad: rotar credenciales Supabase y JWT key (están en git en texto plano)
+1. Reimprimir ticket en Reportes (reconstruir ESC/POS desde VentaResumenDto)
+2. Seguridad: rotar credenciales Supabase y JWT key (están en git en texto plano)
 
 Ver `agents/PROGRESS.md` para el estado detallado.
 
