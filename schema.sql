@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS productos (
     stock_habilitado  BOOLEAN        NOT NULL DEFAULT TRUE,
     activo            BOOLEAN        NOT NULL DEFAULT TRUE,
     imagen_url        TEXT,
+    categoria         VARCHAR(50),
     creado_en         TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT valid_precio CHECK (
         (tipo_venta = 'peso'    AND precio_por_kg     IS NOT NULL AND precio_por_unidad IS NULL) OR
@@ -33,8 +34,9 @@ CREATE TABLE IF NOT EXISTS productos (
     )
 );
 
-CREATE INDEX IF NOT EXISTS idx_productos_nombre   ON productos (nombre);
-CREATE INDEX IF NOT EXISTS idx_productos_creado_en ON productos (creado_en);
+CREATE INDEX IF NOT EXISTS idx_productos_nombre     ON productos (nombre);
+CREATE INDEX IF NOT EXISTS idx_productos_creado_en  ON productos (creado_en);
+CREATE INDEX IF NOT EXISTS idx_productos_categoria  ON productos (categoria);
 
 -- ─── VENTAS ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ventas (
