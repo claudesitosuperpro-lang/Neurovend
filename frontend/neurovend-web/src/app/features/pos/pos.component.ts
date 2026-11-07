@@ -67,6 +67,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   searchQuery = '';
 
   localCantidades = new Map<number, number>();
+  private nextCuentaNum = 1;
 
   config: Configuracion | null = null;
 
@@ -101,9 +102,14 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.posState.tieneContenido) {
       this.crearPrimeraCuenta();
     } else {
-      this.cuentaActual()?.detalles.forEach(d =>
-        this.localCantidades.set(d.productoId, d.cantidad)
-      );
+      // Inicializar contador desde las cuentas existentes para evitar nombres repetidos
+      const maxNum = this.cuentas().reduce((max, c) => {
+        const m = c.etiqueta.match(/Cuenta (\d+)/);
+        return m ? Math.max(max, parseInt(m[1])) : max;
+      }, 0);
+      this.nextCuentaNum = maxNum + 1;
+      // Sincronizar cantidades de la cuenta activa actual
+      this.syncLocalCantidades();
     }
     this.buscarProductos('');
 
@@ -145,7 +151,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   private async crearPrimeraCuenta(): Promise<void> {
     try {
       const { ventaId } = await this.api.crearVenta();
-      this.cuentas.set([{ ventaId, etiqueta: 'Cuenta 1', detalles: [], total: 0 }]);
+      this.cuentas.set([{ ventaId, etiqueta: `Cuenta ${this.nextCuentaNum++}`, detalles: [], total: 0 }]);
       this.cuentaIndex.set(0);
     } catch {
       this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo iniciar la sesión de venta', life: 4000 });
@@ -155,12 +161,17 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   async nuevaCuenta(): Promise<void> {
     try {
       const { ventaId } = await this.api.crearVenta();
-      const n = this.cuentas().length + 1;
-      this.cuentas.update(c => [...c, { ventaId, etiqueta: `Cuenta ${n}`, detalles: [], total: 0 }]);
+      this.cuentas.update(c => [...c, { ventaId, etiqueta: `Cuenta ${this.nextCuentaNum++}`, detalles: [], total: 0 }]);
       this.cuentaIndex.set(this.cuentas().length - 1);
+      this.localCantidades.clear(); // nueva cuenta siempre empieza vacía
     } catch {
       this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo crear nueva cuenta', life: 3000 });
     }
+  }
+
+  selectCuenta(i: number): void {
+    this.cuentaIndex.set(i);
+    this.syncLocalCantidades(i);
   }
 
   async cerrarCuenta(i: number, event: Event): Promise<void> {
@@ -174,8 +185,17 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.cuentas().length === 0) {
       await this.crearPrimeraCuenta();
     } else {
-      this.cuentaIndex.set(Math.min(i, this.cuentas().length - 1));
+      const newIndex = Math.min(i, this.cuentas().length - 1);
+      this.cuentaIndex.set(newIndex);
+      this.syncLocalCantidades(newIndex);
     }
+  }
+
+  private syncLocalCantidades(i?: number): void {
+    const idx = i ?? this.cuentaIndex();
+    const cuenta = this.cuentas()[idx];
+    this.localCantidades.clear();
+    cuenta?.detalles.forEach(d => this.localCantidades.set(d.productoId, d.cantidad));
   }
 
   async limpiarCuenta(): Promise<void> {

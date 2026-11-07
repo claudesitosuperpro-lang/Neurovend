@@ -104,7 +104,7 @@
           <div
             class="cuenta-tab"
             [class.active]="cuentaIndex() === i"
-            (click)="cuentaIndex.set(i)"
+            (click)="selectCuenta(i)"
           >
             <span>{{ c.etiqueta }}</span>
             @if (c.detalles.length > 0) {
