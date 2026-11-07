@@ -33,6 +33,7 @@
     <div class="table-header-row">
       <span class="col-codigo">Código</span>
       <span class="col-nombre">Nombre</span>
+      <span class="col-categoria">Categoría</span>
       <span class="col-tipo">Tipo</span>
       <span class="col-precio">Precio</span>
       <span class="col-stock">Stock</span>
@@ -44,6 +45,13 @@
       <div class="table-row" [class.inactivo]="!p.activo" [class.stock-bajo]="p.stockHabilitado && p.stock > 0 && p.stock <= 5" [class.sin-stock]="p.stockHabilitado && p.stock === 0">
         <span class="col-codigo mono">{{ p.codigo }}</span>
         <span class="col-nombre">{{ p.nombre }}</span>
+        <span class="col-categoria">
+          @if (p.categoria) {
+            <span class="categoria-badge">{{ p.categoria }}</span>
+          } @else {
+            <span class="text-muted">—</span>
+          }
+        </span>
         <span class="col-tipo">
           <span class="tipo-badge" [class.peso]="p.tipoVenta === 'peso'">
             {{ p.tipoVenta === 'peso' ? 'Peso' : 'Unidad' }}
@@ -144,6 +152,11 @@
         <p-inputnumber [(ngModel)]="form.stock" [min]="0" styleClass="w-full" />
       </div>
     }
+
+    <div class="form-row">
+      <label>Categoría (opcional)</label>
+      <input pInputText type="text" [(ngModel)]="form.categoria" placeholder="Ej: Frutas, Verduras, Lácteos..." class="w-full" />
+    </div>
 
     <div class="form-row">
       <label>URL de imagen (opcional)</label>

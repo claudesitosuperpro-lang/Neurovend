@@ -8,5 +8,6 @@ public record CreateProductoRequest(
     string TipoVenta,
     decimal Stock,
     bool StockHabilitado,
-    string? ImagenUrl
+    string? ImagenUrl,
+    string? Categoria
 );

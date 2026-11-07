@@ -32,7 +32,10 @@
 
       @if (metodoPago === 'efectivo') {
         <div class="efectivo-section">
-          <label>Monto recibido</label>
+          <div class="monto-label-row">
+            <label>Monto recibido</label>
+            <button class="exacto-btn" type="button" (click)="setExacto()">Exacto</button>
+          </div>
           <p-inputnumber
             [ngModel]="montoRecibido()"
             (ngModelChange)="montoRecibido.set($event ?? 0)"

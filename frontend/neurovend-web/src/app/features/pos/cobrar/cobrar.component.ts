@@ -39,6 +39,10 @@ export class CobrarComponent {
 
   cambio = computed(() => Math.max(0, this.montoRecibido() - this.total));
 
+  setExacto(): void {
+    this.montoRecibido.set(this.total);
+  }
+
   onHide() {
     this.reset();
     this.visibleChange.emit(false);

@@ -168,13 +168,20 @@ usuarios.MapPatch("/{id:long}/activo", async (long id, ToggleActivoRequest req, 
 // ═══════════════════════════════════════════════════════════════════════════════
 var productos = app.MapGroup("/api/productos").RequireAuthorization();
 
-// POS: solo activos, buscables por nombre o código
-productos.MapGet("/", async (string? q, IProductoService productoService) =>
+// POS: solo activos, buscables por nombre/código, filtrables por categoría
+productos.MapGet("/", async (string? q, string? categoria, IProductoService productoService) =>
 {
     var lista = string.IsNullOrWhiteSpace(q)
-        ? await productoService.GetAllAsync()
-        : await productoService.SearchAsync(q);
+        ? await productoService.GetAllAsync(categoria)
+        : await productoService.SearchAsync(q, categoria);
     return Results.Ok(lista.Select(ToDto));
+});
+
+// Categorías únicas de productos activos
+productos.MapGet("/categorias", async (IProductoService productoService) =>
+{
+    var cats = await productoService.GetCategoriasAsync();
+    return Results.Ok(cats);
 });
 
 // Gestión: todos (activos e inactivos)
@@ -209,7 +216,8 @@ productos.MapPost("/", async (CreateProductoRequest req, IProductoService produc
         TipoVenta = req.TipoVenta,
         Stock = req.Stock,
         StockHabilitado = req.StockHabilitado,
-        ImagenUrl = req.ImagenUrl
+        ImagenUrl = req.ImagenUrl,
+        Categoria = string.IsNullOrWhiteSpace(req.Categoria) ? null : req.Categoria.Trim()
     };
     var id = await productoService.CreateAsync(producto);
     return Results.Created($"/api/productos/{id}", new { id });
@@ -229,7 +237,8 @@ productos.MapPut("/{id:long}", async (long id, UpdateProductoRequest req, IProdu
         Stock = req.Stock,
         StockHabilitado = req.StockHabilitado,
         Activo = req.Activo,
-        ImagenUrl = req.ImagenUrl
+        ImagenUrl = req.ImagenUrl,
+        Categoria = string.IsNullOrWhiteSpace(req.Categoria) ? null : req.Categoria.Trim()
     };
     await productoService.UpdateAsync(producto);
     return Results.NoContent();
@@ -338,6 +347,16 @@ ventas.MapGet("/reportes", async (DateOnly? inicio, DateOnly? fin, IVentaService
     return Results.Ok(lista);
 });
 
+// Cierre de caja (solo dueño)
+ventas.MapGet("/cierre", async (DateOnly? inicio, DateOnly? fin, IVentaService ventaService, ClaimsPrincipal user) =>
+{
+    if (!user.IsInRole("dueño")) return Results.Forbid();
+    var fechaInicio = inicio ?? DateOnly.FromDateTime(DateTime.Today);
+    var fechaFin = fin ?? DateOnly.FromDateTime(DateTime.Today);
+    var cierre = await ventaService.GetCierreCajaAsync(fechaInicio, fechaFin);
+    return Results.Ok(cierre);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONFIGURACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -368,6 +387,6 @@ app.Run();
 // ─── Helpers locales ─────────────────────────────────────────────────────────
 static ProductoDto ToDto(Producto p) => new(
     p.Id, p.Codigo, p.Nombre, p.PrecioPorKg, p.PrecioPorUnidad,
-    p.TipoVenta, p.Stock, p.StockHabilitado, p.Activo, p.ImagenUrl, p.CreadoEn);
+    p.TipoVenta, p.Stock, p.StockHabilitado, p.Activo, p.ImagenUrl, p.CreadoEn, p.Categoria);
 
 record ToggleActivoRequest(bool Activo);

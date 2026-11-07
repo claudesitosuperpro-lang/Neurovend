@@ -89,6 +89,7 @@ export class GestionProductosComponent implements OnInit, AfterViewInit {
       stock: p.stock,
       stockHabilitado: p.stockHabilitado,
       imagenUrl: p.imagenUrl,
+      categoria: p.categoria,
     };
     this.mostrarDialog = true;
   }

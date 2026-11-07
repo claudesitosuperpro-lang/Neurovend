@@ -1,3 +1,4 @@
+using NEUROVEND.Core.DTOs.Ventas;
 using NEUROVEND.Core.Entities;
 
 namespace NEUROVEND.Core.Interfaces;
@@ -14,4 +15,5 @@ public interface IVentaRepository
     Task<IEnumerable<Venta>> GetMisVentasAsync(long usuarioId, DateOnly inicio, DateOnly fin);
     Task<Venta?> GetByIdAsync(long ventaId);
     Task UpdateCantidadAsync(long ventaId, long productoId, decimal nuevaCantidad, string tipoVenta, decimal precioUnitario);
+    Task<CierreCajaDto> GetCierreCajaAsync(DateOnly inicio, DateOnly fin);
 }

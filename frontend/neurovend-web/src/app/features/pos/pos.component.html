@@ -51,6 +51,23 @@
       />
     </div>
 
+    @if (categorias().length > 0) {
+      <div class="categoria-chips">
+        <button
+          class="cat-chip"
+          [class.active]="!categoriaSeleccionada()"
+          (click)="setCategoriaFiltro(null)"
+        >Todas</button>
+        @for (cat of categorias(); track cat) {
+          <button
+            class="cat-chip"
+            [class.active]="categoriaSeleccionada() === cat"
+            (click)="setCategoriaFiltro(cat)"
+          >{{ cat }}</button>
+        }
+      </div>
+    }
+
     @if (cargandoProductos()) {
       <div class="loading-products">
         <span class="pi pi-spin pi-spinner"></span>

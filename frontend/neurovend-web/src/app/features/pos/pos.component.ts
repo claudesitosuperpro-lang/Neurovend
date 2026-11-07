@@ -17,6 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { HardwareService } from '../../core/services/hardware.service';
 import { ApiService } from '../../core/services/api.service';
 import { PosStateService } from '../../core/services/pos-state.service';
+import { SoundService } from '../../core/services/sound.service';
 import { Producto, DetalleVenta, Configuracion, CuentaPos } from '../../core/models';
 import { CobrarComponent } from './cobrar/cobrar.component';
 import { SelectOnFocusDirective } from '../../shared/directives/select-on-focus.directive';
@@ -43,6 +44,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
   private msg = inject(MessageService);
   private posState = inject(PosStateService);
+  private sound = inject(SoundService);
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
 
@@ -57,6 +59,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   cuentaTotal = this.posState.cuentaTotal;
 
   productos = signal<Producto[]>([]);
+  categorias = signal<string[]>([]);
+  categoriaSeleccionada = signal<string | null>(null);
   cargandoProductos = signal(false);
   cargandoAgregar = signal(false);
   searchQuery = '';
@@ -80,6 +84,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return [
       { label: 'Productos', icon: 'pi pi-box', routerLink: '/productos' },
       { label: 'Reportes', icon: 'pi pi-chart-bar', routerLink: '/reportes' },
+      { label: 'Cierre de caja', icon: 'pi pi-calculator', routerLink: '/cierre-caja' },
       { label: 'Mis ventas', icon: 'pi pi-history', routerLink: '/mis-ventas' },
       { label: 'Usuarios', icon: 'pi pi-users', routerLink: '/usuarios' },
       { label: 'Configuración', icon: 'pi pi-cog', routerLink: '/configuracion' },
@@ -91,6 +96,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.hardware.verificarDisponibilidad();
     this.cargarConfig();
+    this.cargarCategorias();
     if (!this.posState.tieneContenido) {
       this.crearPrimeraCuenta();
     } else {
@@ -121,6 +127,18 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       this.config = await this.api.getConfiguracion();
     } catch {}
+  }
+
+  private async cargarCategorias(): Promise<void> {
+    try {
+      const cats = await this.api.getCategorias();
+      this.categorias.set(cats);
+    } catch {}
+  }
+
+  setCategoriaFiltro(cat: string | null): void {
+    this.categoriaSeleccionada.set(cat);
+    this.buscarProductos(this.searchQuery);
   }
 
   private async crearPrimeraCuenta(): Promise<void> {
@@ -220,7 +238,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   private async buscarProductos(q: string): Promise<void> {
     this.cargandoProductos.set(true);
     try {
-      const result = await this.api.getProductos(q);
+      const cat = this.categoriaSeleccionada() ?? undefined;
+      const result = await this.api.getProductos(q || undefined, cat);
       this.productos.set(result);
     } catch {
       this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar productos', life: 3000 });
@@ -286,6 +305,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cargandoAgregar.set(true);
     try {
       await this.api.agregarProducto(cuenta.ventaId, { productoId: p.id, cantidad });
+      this.sound.beep();
       await this.recargarDetalles();
     } catch (err: any) {
       const detail = err?.error?.error ?? 'No se pudo agregar el producto';

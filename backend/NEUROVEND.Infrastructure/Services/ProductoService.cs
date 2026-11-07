@@ -5,11 +5,14 @@ namespace NEUROVEND.Infrastructure.Services;
 
 public class ProductoService(IProductoRepository productoRepository) : IProductoService
 {
-    public Task<IEnumerable<Producto>> GetAllAsync() =>
-        productoRepository.GetAllAsync();
+    public Task<IEnumerable<Producto>> GetAllAsync(string? categoria = null) =>
+        productoRepository.GetAllAsync(categoria);
 
-    public Task<IEnumerable<Producto>> SearchAsync(string query) =>
-        productoRepository.SearchAsync(query);
+    public Task<IEnumerable<Producto>> SearchAsync(string query, string? categoria = null) =>
+        productoRepository.SearchAsync(query, categoria);
+
+    public Task<IEnumerable<string>> GetCategoriasAsync() =>
+        productoRepository.GetCategoriasAsync();
 
     public Task<IEnumerable<Producto>> GetAllParaGestionAsync(string query) =>
         productoRepository.GetAllParaGestionAsync(query);

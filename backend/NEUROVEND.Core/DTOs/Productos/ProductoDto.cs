@@ -11,5 +11,6 @@ public record ProductoDto(
     bool StockHabilitado,
     bool Activo,
     string? ImagenUrl,
-    DateTime CreadoEn
+    DateTime CreadoEn,
+    string? Categoria
 );

@@ -24,6 +24,7 @@ export interface Producto {
   stockHabilitado: boolean;
   activo: boolean;
   imagenUrl?: string;
+  categoria?: string;
   creadoEn: string;
 }
 
@@ -36,6 +37,7 @@ export interface CreateProductoRequest {
   stock: number;
   stockHabilitado: boolean;
   imagenUrl?: string;
+  categoria?: string;
 }
 
 export interface UpdateProductoRequest extends CreateProductoRequest {
@@ -112,4 +114,18 @@ export interface CuentaPos {
   etiqueta: string;
   detalles: DetalleVenta[];
   total: number;
+}
+
+export interface CierrePorCategoria {
+  categoria: string;
+  total: number;
+}
+
+export interface CierreCajaDto {
+  totalVentas: number;
+  totalMonto: number;
+  totalEfectivo: number;
+  totalTarjeta: number;
+  ticketPromedio: number;
+  porCategoria: CierrePorCategoria[];
 }

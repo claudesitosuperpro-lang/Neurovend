@@ -77,7 +77,7 @@
 
 .table-header-row {
   display: grid;
-  grid-template-columns: 110px 1fr 100px 130px 80px 80px 90px;
+  grid-template-columns: 110px 1fr 120px 90px 130px 70px 70px 90px;
   padding: 0.7rem 1rem;
   background: var(--p-surface-100, #f1f5f9);
   font-size: 0.75rem;
@@ -90,7 +90,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 110px 1fr 100px 130px 80px 80px 90px;
+  grid-template-columns: 110px 1fr 120px 90px 130px 70px 70px 90px;
   padding: 0.7rem 1rem;
   align-items: center;
   border-bottom: 1px solid var(--p-surface-100, #f1f5f9);
@@ -114,6 +114,15 @@
 .col-nombre {
   font-weight: 600;
   color: var(--p-text-color, #1e293b);
+}
+
+.categoria-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  background: var(--p-purple-50, #faf5ff);
+  color: var(--p-purple-600, #7c3aed);
 }
 
 .tipo-badge {

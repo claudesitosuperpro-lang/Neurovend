@@ -12,6 +12,7 @@ public class Producto
     public bool StockHabilitado { get; set; } = true;
     public bool Activo { get; set; } = true;
     public string? ImagenUrl { get; set; }
+    public string? Categoria { get; set; }
     public DateTime CreadoEn { get; set; }
 
     public decimal PrecioUnitario => TipoVenta == "peso" ? PrecioPorKg!.Value : PrecioPorUnidad!.Value;

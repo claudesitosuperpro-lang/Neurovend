@@ -39,6 +39,11 @@ const routes: Routes = [
     loadComponent: () => import('./features/mis-ventas/mis-ventas.component').then(m => m.MisVentasComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'cierre-caja',
+    loadComponent: () => import('./features/cierre-caja/cierre-caja.component').then(m => m.CierreCajaComponent),
+    canActivate: [authGuard, duenoGuard],
+  },
   { path: '**', redirectTo: '/pos' },
 ];
 

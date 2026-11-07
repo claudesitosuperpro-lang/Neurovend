@@ -12,26 +12,40 @@ public class ProductoRepository(string connectionString) : IProductoRepository
     private const string SelectColumns = """
         SELECT id, codigo, nombre, precio_por_kg AS PrecioPorKg, precio_por_unidad AS PrecioPorUnidad,
                tipo_venta AS TipoVenta, stock, stock_habilitado AS StockHabilitado,
-               activo, imagen_url AS ImagenUrl, creado_en AS CreadoEn
+               activo, imagen_url AS ImagenUrl, categoria, creado_en AS CreadoEn
         FROM productos
         """;
 
-    public async Task<IEnumerable<Producto>> GetAllAsync()
+    public async Task<IEnumerable<Producto>> GetAllAsync(string? categoria = null)
     {
-        var sql = $"{SelectColumns} WHERE activo = TRUE ORDER BY nombre ASC";
+        var sql = string.IsNullOrWhiteSpace(categoria)
+            ? $"{SelectColumns} WHERE activo = TRUE ORDER BY nombre ASC"
+            : $"{SelectColumns} WHERE activo = TRUE AND categoria = @categoria ORDER BY nombre ASC";
         await using var conn = CreateConnection();
-        return await conn.QueryAsync<Producto>(sql);
+        return await conn.QueryAsync<Producto>(sql, new { categoria });
     }
 
-    public async Task<IEnumerable<Producto>> SearchAsync(string query)
+    public async Task<IEnumerable<Producto>> SearchAsync(string query, string? categoria = null)
     {
+        var catFilter = string.IsNullOrWhiteSpace(categoria) ? "" : " AND categoria = @categoria";
         var sql = $"""
             {SelectColumns}
-            WHERE activo = TRUE AND (nombre ILIKE @q OR codigo ILIKE @q)
+            WHERE activo = TRUE AND (nombre ILIKE @q OR codigo ILIKE @q){catFilter}
             ORDER BY nombre ASC
             """;
         await using var conn = CreateConnection();
-        return await conn.QueryAsync<Producto>(sql, new { q = $"%{query}%" });
+        return await conn.QueryAsync<Producto>(sql, new { q = $"%{query}%", categoria });
+    }
+
+    public async Task<IEnumerable<string>> GetCategoriasAsync()
+    {
+        const string sql = """
+            SELECT DISTINCT categoria FROM productos
+            WHERE activo = TRUE AND categoria IS NOT NULL AND categoria <> ''
+            ORDER BY categoria ASC
+            """;
+        await using var conn = CreateConnection();
+        return await conn.QueryAsync<string>(sql);
     }
 
     public async Task<IEnumerable<Producto>> GetAllParaGestionAsync(string query)
@@ -60,8 +74,8 @@ public class ProductoRepository(string connectionString) : IProductoRepository
     public async Task<long> CreateAsync(Producto producto)
     {
         const string sql = """
-            INSERT INTO productos (codigo, nombre, precio_por_kg, precio_por_unidad, tipo_venta, stock, stock_habilitado, activo, imagen_url)
-            VALUES (@Codigo, @Nombre, @PrecioPorKg, @PrecioPorUnidad, @TipoVenta, @Stock, @StockHabilitado, TRUE, @ImagenUrl)
+            INSERT INTO productos (codigo, nombre, precio_por_kg, precio_por_unidad, tipo_venta, stock, stock_habilitado, activo, imagen_url, categoria)
+            VALUES (@Codigo, @Nombre, @PrecioPorKg, @PrecioPorUnidad, @TipoVenta, @Stock, @StockHabilitado, TRUE, @ImagenUrl, @Categoria)
             RETURNING id
             """;
         await using var conn = CreateConnection();
@@ -80,7 +94,8 @@ public class ProductoRepository(string connectionString) : IProductoRepository
                 stock = @Stock,
                 stock_habilitado = @StockHabilitado,
                 activo = @Activo,
-                imagen_url = @ImagenUrl
+                imagen_url = @ImagenUrl,
+                categoria = @Categoria
             WHERE id = @Id
             """;
         await using var conn = CreateConnection();

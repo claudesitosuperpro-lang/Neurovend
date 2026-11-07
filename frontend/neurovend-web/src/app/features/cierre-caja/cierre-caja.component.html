@@ -1,0 +1,102 @@
+<p-toast />
+
+<div class="cierre-layout">
+  <div class="cierre-header">
+    <div class="header-left">
+      <a routerLink="/pos" class="back-link">
+        <span class="pi pi-arrow-left"></span>
+      </a>
+      <h1>Cierre de Caja</h1>
+    </div>
+    <div class="header-actions">
+      <p-datepicker
+        [(ngModel)]="rango"
+        selectionMode="range"
+        [readonlyInput]="true"
+        dateFormat="dd/mm/yy"
+        placeholder="Selecciona rango"
+        (onSelect)="onRangoChange()"
+      />
+      <p-button
+        label="Consultar"
+        icon="pi pi-search"
+        [loading]="cargando()"
+        (onClick)="cargar()"
+      />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="loading-state">
+      <span class="pi pi-spin pi-spinner"></span> Cargando...
+    </div>
+  }
+
+  @if (cierre() && !cargando()) {
+    <div class="cierre-content">
+
+      <!-- Cards resumen -->
+      <div class="cards-row">
+        <div class="summary-card">
+          <span class="card-label">Ventas realizadas</span>
+          <span class="card-value">{{ cierre()!.totalVentas }}</span>
+        </div>
+        <div class="summary-card highlight">
+          <span class="card-label">Total del día</span>
+          <span class="card-value">{{ cierre()!.totalMonto | currency:'MXN':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="summary-card efectivo">
+          <span class="card-label">
+            <span class="pi pi-money-bill"></span> Efectivo
+          </span>
+          <span class="card-value">{{ cierre()!.totalEfectivo | currency:'MXN':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="summary-card tarjeta">
+          <span class="card-label">
+            <span class="pi pi-credit-card"></span> Tarjeta
+          </span>
+          <span class="card-value">{{ cierre()!.totalTarjeta | currency:'MXN':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="card-label">Ticket promedio</span>
+          <span class="card-value">{{ cierre()!.ticketPromedio | currency:'MXN':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Desglose por categoría -->
+      @if (cierre()!.porCategoria.length > 0) {
+        <div class="categorias-section">
+          <h2>Ventas por categoría</h2>
+          <div class="categorias-table">
+            <div class="cat-header-row">
+              <span>Categoría</span>
+              <span>Total</span>
+              <span>% del total</span>
+            </div>
+            @for (cat of cierre()!.porCategoria; track cat.categoria) {
+              <div class="cat-row">
+                <span class="cat-nombre">{{ cat.categoria }}</span>
+                <span class="cat-total">{{ cat.total | currency:'MXN':'symbol':'1.2-2' }}</span>
+                <span class="cat-pct">
+                  <span class="pct-bar-wrap">
+                    <span
+                      class="pct-bar"
+                      [style.width.%]="cierre()!.totalMonto > 0 ? (cat.total / cierre()!.totalMonto * 100) : 0"
+                    ></span>
+                  </span>
+                  {{ cierre()!.totalMonto > 0 ? (cat.total / cierre()!.totalMonto * 100 | number:'1.1-1') : '0.0' }}%
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <span class="pi pi-inbox"></span>
+          <p>No hay ventas en este período</p>
+        </div>
+      }
+
+    </div>
+  }
+</div>

@@ -9,5 +9,6 @@ public record UpdateProductoRequest(
     decimal Stock,
     bool StockHabilitado,
     bool Activo,
-    string? ImagenUrl
+    string? ImagenUrl,
+    string? Categoria
 );

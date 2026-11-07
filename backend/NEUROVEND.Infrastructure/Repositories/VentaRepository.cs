@@ -1,4 +1,5 @@
 using Dapper;
+using NEUROVEND.Core.DTOs.Ventas;
 using NEUROVEND.Core.Entities;
 using NEUROVEND.Core.Interfaces;
 using Npgsql;
@@ -192,6 +193,46 @@ public class VentaRepository(string connectionString) : IVentaRepository
             """;
         await using var conn = CreateConnection();
         return await conn.QuerySingleOrDefaultAsync<Venta>(sql, new { ventaId });
+    }
+
+    public async Task<CierreCajaDto> GetCierreCajaAsync(DateOnly inicio, DateOnly fin)
+    {
+        const string sqlResumen = """
+            SELECT
+                COUNT(*)                                                               AS TotalVentas,
+                COALESCE(SUM(total), 0)                                                AS TotalMonto,
+                COALESCE(SUM(CASE WHEN metodo_pago = 'efectivo' THEN total ELSE 0 END), 0) AS TotalEfectivo,
+                COALESCE(SUM(CASE WHEN metodo_pago = 'tarjeta'  THEN total ELSE 0 END), 0) AS TotalTarjeta
+            FROM ventas
+            WHERE fecha_venta BETWEEN @inicio AND @fin AND estado = 'completada'
+            """;
+
+        const string sqlCategorias = """
+            SELECT
+                COALESCE(NULLIF(p.categoria, ''), 'Sin categoría') AS Categoria,
+                COALESCE(SUM(dv.subtotal), 0)                      AS Total
+            FROM ventas v
+            JOIN detalle_venta dv ON dv.venta_id = v.id
+            JOIN productos p ON p.id = dv.producto_id
+            WHERE v.fecha_venta BETWEEN @inicio AND @fin AND v.estado = 'completada'
+            GROUP BY COALESCE(NULLIF(p.categoria, ''), 'Sin categoría')
+            ORDER BY Total DESC
+            """;
+
+        await using var conn = CreateConnection();
+        var resumen = await conn.QuerySingleAsync(sqlResumen, new { inicio, fin });
+        var porCategoria = await conn.QueryAsync<CierrePorCategoria>(sqlCategorias, new { inicio, fin });
+
+        int totalVentas = (int)resumen.totalventas;
+        decimal totalMonto = resumen.totalmonto;
+        return new CierreCajaDto(
+            totalVentas,
+            totalMonto,
+            resumen.totalefectivo,
+            resumen.totaltarjeta,
+            totalVentas > 0 ? Math.Round(totalMonto / totalVentas, 2) : 0,
+            porCategoria
+        );
     }
 
     private static async Task ActualizarTotalAsync(NpgsqlConnection conn, long ventaId)

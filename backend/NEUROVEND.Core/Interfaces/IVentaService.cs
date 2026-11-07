@@ -1,3 +1,4 @@
+using NEUROVEND.Core.DTOs.Ventas;
 using NEUROVEND.Core.Entities;
 
 namespace NEUROVEND.Core.Interfaces;
@@ -13,4 +14,5 @@ public interface IVentaService
     Task CancelarVentaAsync(long ventaId);
     Task<IEnumerable<Venta>> GetVentasPorFechaAsync(DateOnly inicio, DateOnly fin);
     Task<IEnumerable<Venta>> GetMisVentasAsync(long usuarioId, DateOnly inicio, DateOnly fin);
+    Task<CierreCajaDto> GetCierreCajaAsync(DateOnly inicio, DateOnly fin);
 }

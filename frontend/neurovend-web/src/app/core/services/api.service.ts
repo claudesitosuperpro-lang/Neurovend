@@ -5,7 +5,7 @@ import {
   Producto, CreateProductoRequest, UpdateProductoRequest,
   DetalleVenta, AgregarProductoRequest, FinalizarVentaRequest,
   VentaResumenDto, RegisterRequest, Configuracion,
-  UsuarioDto, UpdateUsuarioRequest,
+  UsuarioDto, UpdateUsuarioRequest, CierreCajaDto,
 } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -16,9 +16,16 @@ export class ApiService {
   }
 
   // ─── Productos ────────────────────────────────────────────────────
-  getProductos(q?: string) {
-    const params = q ? `?q=${encodeURIComponent(q)}` : '';
+  getProductos(q?: string, categoria?: string) {
+    const parts: string[] = [];
+    if (q) parts.push(`q=${encodeURIComponent(q)}`);
+    if (categoria) parts.push(`categoria=${encodeURIComponent(categoria)}`);
+    const params = parts.length ? `?${parts.join('&')}` : '';
     return firstValueFrom(this.http.get<Producto[]>(this.url(`/api/productos/${params}`)));
+  }
+
+  getCategorias() {
+    return firstValueFrom(this.http.get<string[]>(this.url('/api/productos/categorias')));
   }
 
   getProductosGestion(q?: string) {
@@ -81,6 +88,10 @@ export class ApiService {
 
   getMisVentas(inicio: string, fin: string) {
     return firstValueFrom(this.http.get<VentaResumenDto[]>(this.url(`/api/ventas/mis-ventas?inicio=${inicio}&fin=${fin}`)));
+  }
+
+  getCierreCaja(inicio: string, fin: string) {
+    return firstValueFrom(this.http.get<CierreCajaDto>(this.url(`/api/ventas/cierre?inicio=${inicio}&fin=${fin}`)));
   }
 
   // ─── Configuracion ────────────────────────────────────────────────
