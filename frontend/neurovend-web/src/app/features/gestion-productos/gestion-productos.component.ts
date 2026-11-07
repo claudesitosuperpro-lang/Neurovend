@@ -87,7 +87,19 @@ export class GestionProductosComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async eliminarCategoria(cat: Categoria): Promise<void> {
+  confirmarEliminarCategoria(cat: Categoria): void {
+    this.confirm.confirm({
+      message: `¿Eliminar la categoría "${cat.nombre}"? Los productos que la tengan asignada quedarán sin categoría.`,
+      header: 'Confirmar eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.eliminarCategoria(cat),
+    });
+  }
+
+  private async eliminarCategoria(cat: Categoria): Promise<void> {
     try {
       await this.api.deleteCategoria(cat.id);
       await this.cargarCategorias();

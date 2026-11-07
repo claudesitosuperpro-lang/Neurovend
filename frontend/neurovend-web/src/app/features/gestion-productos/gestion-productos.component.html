@@ -52,7 +52,7 @@
       @for (cat of categorias(); track cat.id) {
         <span class="cat-tag">
           {{ cat.nombre }}
-          <button class="cat-tag-del" (click)="eliminarCategoria(cat)" title="Eliminar">
+          <button class="cat-tag-del" (click)="confirmarEliminarCategoria(cat)" title="Eliminar">
             <span class="pi pi-times"></span>
           </button>
         </span>
