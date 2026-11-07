@@ -47,26 +47,18 @@
         (ngModelChange)="onSearch($event)"
         (keydown.enter)="onSearchEnter()"
         placeholder="Buscar producto o código..."
-        class="w-full"
+        class="search-input"
+      />
+      <p-select
+        [ngModel]="categoriaSeleccionada()"
+        (ngModelChange)="setCategoriaFiltro($event)"
+        [options]="categorias()"
+        optionLabel="nombre"
+        [showClear]="!!categoriaSeleccionada()"
+        placeholder="Todas"
+        styleClass="cat-select"
       />
     </div>
-
-    @if (categorias().length > 0) {
-      <div class="categoria-chips">
-        <button
-          class="cat-chip"
-          [class.active]="!categoriaSeleccionada()"
-          (click)="setCategoriaFiltro(null)"
-        >Todas</button>
-        @for (cat of categorias(); track cat) {
-          <button
-            class="cat-chip"
-            [class.active]="categoriaSeleccionada() === cat"
-            (click)="setCategoriaFiltro(cat)"
-          >{{ cat }}</button>
-        }
-      </div>
-    }
 
     @if (cargandoProductos()) {
       <div class="loading-products">

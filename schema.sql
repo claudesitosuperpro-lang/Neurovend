@@ -14,6 +14,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
     creado_en  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ─── CATEGORÍAS ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS categorias (
+    id     SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE NOT NULL
+);
+
 -- ─── PRODUCTOS ───────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS productos (
     id                SERIAL PRIMARY KEY,

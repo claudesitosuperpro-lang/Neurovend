@@ -9,6 +9,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { Toast } from 'primeng/toast';
 import { Menubar } from 'primeng/menubar';
@@ -18,7 +19,7 @@ import { HardwareService } from '../../core/services/hardware.service';
 import { ApiService } from '../../core/services/api.service';
 import { PosStateService } from '../../core/services/pos-state.service';
 import { SoundService } from '../../core/services/sound.service';
-import { Producto, DetalleVenta, Configuracion, CuentaPos } from '../../core/models';
+import { Producto, DetalleVenta, Configuracion, CuentaPos, Categoria } from '../../core/models';
 import { CobrarComponent } from './cobrar/cobrar.component';
 import { SelectOnFocusDirective } from '../../shared/directives/select-on-focus.directive';
 
@@ -27,7 +28,7 @@ import { SelectOnFocusDirective } from '../../shared/directives/select-on-focus.
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterModule,
-    Button, InputText, InputNumber, DialogModule,
+    Button, InputText, InputNumber, Select, DialogModule,
     Toast, Menubar,
     CobrarComponent,
     SelectOnFocusDirective,
@@ -59,8 +60,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   cuentaTotal = this.posState.cuentaTotal;
 
   productos = signal<Producto[]>([]);
-  categorias = signal<string[]>([]);
-  categoriaSeleccionada = signal<string | null>(null);
+  categorias = signal<Categoria[]>([]);
+  categoriaSeleccionada = signal<Categoria | null>(null);
   cargandoProductos = signal(false);
   cargandoAgregar = signal(false);
   searchQuery = '';
@@ -136,7 +137,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch {}
   }
 
-  setCategoriaFiltro(cat: string | null): void {
+  setCategoriaFiltro(cat: Categoria | null): void {
     this.categoriaSeleccionada.set(cat);
     this.buscarProductos(this.searchQuery);
   }
@@ -238,7 +239,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   private async buscarProductos(q: string): Promise<void> {
     this.cargandoProductos.set(true);
     try {
-      const cat = this.categoriaSeleccionada() ?? undefined;
+      const cat = this.categoriaSeleccionada()?.nombre ?? undefined;
       const result = await this.api.getProductos(q || undefined, cat);
       this.productos.set(result);
     } catch {

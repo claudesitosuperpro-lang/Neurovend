@@ -116,6 +116,11 @@ export interface CuentaPos {
   total: number;
 }
 
+export interface Categoria {
+  id: number;
+  nombre: string;
+}
+
 export interface CierrePorCategoria {
   categoria: string;
   total: number;

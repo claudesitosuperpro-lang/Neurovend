@@ -23,6 +23,43 @@
     </div>
   </div>
 
+  <!-- Sección de gestión de categorías -->
+  <div class="categorias-section">
+    <div class="categorias-header">
+      <span class="categorias-title">Categorías</span>
+      <div class="categoria-add-row">
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="nuevaCategoriaInput"
+          placeholder="Nueva categoría..."
+          (keydown.enter)="agregarCategoria()"
+          class="categoria-input"
+        />
+        <p-button
+          label="Agregar"
+          icon="pi pi-plus"
+          size="small"
+          [loading]="guardandoCategoria()"
+          (onClick)="agregarCategoria()"
+        />
+      </div>
+    </div>
+    <div class="categorias-chips-list">
+      @if (categorias().length === 0) {
+        <span class="text-muted" style="font-size: 0.8rem">Sin categorías. Agrega una arriba.</span>
+      }
+      @for (cat of categorias(); track cat.id) {
+        <span class="cat-tag">
+          {{ cat.nombre }}
+          <button class="cat-tag-del" (click)="eliminarCategoria(cat)" title="Eliminar">
+            <span class="pi pi-times"></span>
+          </button>
+        </span>
+      }
+    </div>
+  </div>
+
   @if (cargando()) {
     <div class="loading-state">
       <span class="pi pi-spin pi-spinner"></span> Cargando...
@@ -155,7 +192,15 @@
 
     <div class="form-row">
       <label>Categoría (opcional)</label>
-      <input pInputText type="text" [(ngModel)]="form.categoria" placeholder="Ej: Frutas, Verduras, Lácteos..." class="w-full" />
+      <p-select
+        [ngModel]="categorias().find(c => c.nombre === form.categoria) ?? null"
+        (ngModelChange)="form.categoria = $event?.nombre ?? undefined"
+        [options]="categorias()"
+        optionLabel="nombre"
+        [showClear]="true"
+        placeholder="Sin categoría"
+        styleClass="w-full"
+      />
     </div>
 
     <div class="form-row">

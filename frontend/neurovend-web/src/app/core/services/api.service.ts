@@ -5,7 +5,7 @@ import {
   Producto, CreateProductoRequest, UpdateProductoRequest,
   DetalleVenta, AgregarProductoRequest, FinalizarVentaRequest,
   VentaResumenDto, RegisterRequest, Configuracion,
-  UsuarioDto, UpdateUsuarioRequest, CierreCajaDto,
+  UsuarioDto, UpdateUsuarioRequest, CierreCajaDto, Categoria,
 } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -25,7 +25,15 @@ export class ApiService {
   }
 
   getCategorias() {
-    return firstValueFrom(this.http.get<string[]>(this.url('/api/productos/categorias')));
+    return firstValueFrom(this.http.get<Categoria[]>(this.url('/api/categorias/')));
+  }
+
+  createCategoria(nombre: string) {
+    return firstValueFrom(this.http.post<{ id: number; nombre: string }>(this.url('/api/categorias/'), { nombre }));
+  }
+
+  deleteCategoria(id: number) {
+    return firstValueFrom(this.http.delete<void>(this.url(`/api/categorias/${id}`)));
   }
 
   getProductosGestion(q?: string) {

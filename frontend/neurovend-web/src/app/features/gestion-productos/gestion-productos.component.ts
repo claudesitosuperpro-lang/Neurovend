@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { Toast } from 'primeng/toast';
 import { SelectButton } from 'primeng/selectbutton';
@@ -12,7 +13,7 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ApiService } from '../../core/services/api.service';
-import { Producto, CreateProductoRequest, UpdateProductoRequest } from '../../core/models';
+import { Producto, CreateProductoRequest, UpdateProductoRequest, Categoria } from '../../core/models';
 import { SelectOnFocusDirective } from '../../shared/directives/select-on-focus.directive';
 
 @Component({
@@ -20,7 +21,7 @@ import { SelectOnFocusDirective } from '../../shared/directives/select-on-focus.
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterModule,
-    Button, InputText, InputNumber, DialogModule,
+    Button, InputText, InputNumber, Select, DialogModule,
     Toast, SelectButton, ToggleSwitch, ConfirmDialog,
     SelectOnFocusDirective,
   ],
@@ -36,6 +37,7 @@ export class GestionProductosComponent implements OnInit, AfterViewInit {
   private confirm = inject(ConfirmationService);
 
   productos = signal<Producto[]>([]);
+  categorias = signal<Categoria[]>([]);
   cargando = signal(false);
   searchQuery = '';
 
@@ -43,6 +45,9 @@ export class GestionProductosComponent implements OnInit, AfterViewInit {
   editandoId: number | null = null;
   formActivo = true;
   guardando = signal(false);
+
+  nuevaCategoriaInput = '';
+  guardandoCategoria = signal(false);
 
   form: CreateProductoRequest = this.formVacio();
 
@@ -53,10 +58,42 @@ export class GestionProductosComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.cargarProductos();
+    this.cargarCategorias();
   }
 
   ngAfterViewInit(): void {
     this.searchInputRef?.nativeElement.focus();
+  }
+
+  async cargarCategorias(): Promise<void> {
+    try {
+      this.categorias.set(await this.api.getCategorias());
+    } catch {}
+  }
+
+  async agregarCategoria(): Promise<void> {
+    const nombre = this.nuevaCategoriaInput.trim();
+    if (!nombre) return;
+    this.guardandoCategoria.set(true);
+    try {
+      await this.api.createCategoria(nombre);
+      this.nuevaCategoriaInput = '';
+      await this.cargarCategorias();
+    } catch (err: any) {
+      const detail = err?.error?.error ?? 'No se pudo crear la categoría';
+      this.msg.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
+    } finally {
+      this.guardandoCategoria.set(false);
+    }
+  }
+
+  async eliminarCategoria(cat: Categoria): Promise<void> {
+    try {
+      await this.api.deleteCategoria(cat.id);
+      await this.cargarCategorias();
+    } catch {
+      this.msg.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar la categoría', life: 3000 });
+    }
   }
 
   async cargarProductos(): Promise<void> {
@@ -89,7 +126,7 @@ export class GestionProductosComponent implements OnInit, AfterViewInit {
       stock: p.stock,
       stockHabilitado: p.stockHabilitado,
       imagenUrl: p.imagenUrl,
-      categoria: p.categoria,
+      categoria: p.categoria ?? undefined,
     };
     this.mostrarDialog = true;
   }

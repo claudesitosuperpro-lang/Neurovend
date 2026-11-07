@@ -22,6 +22,7 @@ builder.Services.AddSingleton<IProductoRepository>(_ => new ProductoRepository(c
 builder.Services.AddSingleton<IUsuarioRepository>(_ => new UsuarioRepository(connectionString));
 builder.Services.AddSingleton<IVentaRepository>(_ => new VentaRepository(connectionString));
 builder.Services.AddSingleton<IConfiguracionRepository>(_ => new ConfiguracionRepository(connectionString));
+builder.Services.AddSingleton(_ => new CategoriasRepository(connectionString));
 
 // ─── Servicios ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -177,12 +178,9 @@ productos.MapGet("/", async (string? q, string? categoria, IProductoService prod
     return Results.Ok(lista.Select(ToDto));
 });
 
-// Categorías únicas de productos activos
-productos.MapGet("/categorias", async (IProductoService productoService) =>
-{
-    var cats = await productoService.GetCategoriasAsync();
-    return Results.Ok(cats);
-});
+// Categorías disponibles (desde tabla categorias)
+productos.MapGet("/categorias", async (CategoriasRepository cats) =>
+    Results.Ok(await cats.GetAllAsync()));
 
 // Gestión: todos (activos e inactivos)
 productos.MapGet("/gestion", async (string? q, IProductoService productoService, ClaimsPrincipal user) =>
@@ -358,6 +356,33 @@ ventas.MapGet("/cierre", async (DateOnly? inicio, DateOnly? fin, IVentaService v
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// CATEGORÍAS
+// ═══════════════════════════════════════════════════════════════════════════════
+var categorias = app.MapGroup("/api/categorias").RequireAuthorization();
+
+categorias.MapGet("/", async (CategoriasRepository repo) =>
+    Results.Ok(await repo.GetAllAsync()));
+
+categorias.MapPost("/", async (CreateCategoriaRequest req, CategoriasRepository repo, ClaimsPrincipal user) =>
+{
+    if (!user.IsInRole("dueño")) return Results.Forbid();
+    if (string.IsNullOrWhiteSpace(req.Nombre))
+        return Results.BadRequest(new { error = "El nombre es obligatorio" });
+    var nombre = req.Nombre.Trim();
+    if (await repo.ExisteAsync(nombre))
+        return Results.Conflict(new { error = "Ya existe una categoría con ese nombre" });
+    var id = await repo.CreateAsync(nombre);
+    return Results.Created($"/api/categorias/{id}", new { id, nombre });
+});
+
+categorias.MapDelete("/{id:int}", async (int id, CategoriasRepository repo, ClaimsPrincipal user) =>
+{
+    if (!user.IsInRole("dueño")) return Results.Forbid();
+    await repo.DeleteAsync(id);
+    return Results.NoContent();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // CONFIGURACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
 var config = app.MapGroup("/api/configuracion").RequireAuthorization();
@@ -390,3 +415,4 @@ static ProductoDto ToDto(Producto p) => new(
     p.TipoVenta, p.Stock, p.StockHabilitado, p.Activo, p.ImagenUrl, p.CreadoEn, p.Categoria);
 
 record ToggleActivoRequest(bool Activo);
+record CreateCategoriaRequest(string Nombre);
